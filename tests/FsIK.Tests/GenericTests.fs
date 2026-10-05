@@ -104,3 +104,51 @@ let ``retiming scratch is isolated across segments calls and concurrent plans`` 
         (fun angles (retained: float array) -> Assert.Equal<float>(retained, List.toArray angles))
         trajectory.Samples
         retainedFrames
+
+
+[<Fact>]
+let ``solver workspace never overwrites retained results or mixes concurrent targets`` () =
+    let targets =
+        [| -0.7; -0.4; 0.; 0.2; 0.65; 0.75 |]
+        |> Array.map (fun angle -> Geometry.forward chain [ angle ])
+
+    let expected =
+        targets
+        |> Array.map (fun target -> Solver.solve Solver.defaults chain target [ 0. ])
+
+    let retained = expected |> Array.map (fun result -> sprintf "%A" result)
+
+    for target in targets do
+        match
+            Solver.solve
+                { Solver.defaults with
+                    MaxIterations = 1 }
+                chain
+                target
+                [ -0.7 ]
+        with
+        | Solved _
+        | Failed(NoConvergence _) -> ()
+        | failure -> failwithf "%A" failure
+
+    for _ in 1..4 do
+        let concurrent =
+            targets
+            |> Array.Parallel.map (fun target -> Solver.solve Solver.defaults chain target [ 0. ])
+
+        Assert.True(Array.forall2 (=) expected concurrent)
+
+    Assert.Equal<string>(retained, expected |> Array.map (fun result -> sprintf "%A" result))
+
+    for target in targets do
+        match Solver.solve Solver.defaults chain target [ 0.8 ] with
+        | Failed(InvalidInput _) -> ()
+        | failure -> failwithf "%A" failure
+
+    Assert.True(
+        Array.forall2
+            (=)
+            expected
+            (targets
+             |> Array.map (fun target -> Solver.solve Solver.defaults chain target [ 0. ]))
+    )

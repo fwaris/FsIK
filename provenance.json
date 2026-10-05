@@ -5,12 +5,12 @@
     "Geometry.fs": {
       "ChampionSha256": "ec2337429ccaa391f0a5f850aa683253216269e2e3dfbb2dd061da3775ed336e",
       "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a",
-      "CurrentSourceSha256": "9f56a4a3d5ea6f8644bbb94b062e4a3cd0aabaa3f039af5a6bfc02ea79954c53"
+      "CurrentSourceSha256": "1816ca894e09d6f0296818197bd5730d21e99df39fcbfd0ea5e03ad215343c80"
     },
     "Solver.fs": {
       "ChampionSha256": "c773da97da856f8e7069dce80b89c137e253cc172809c8102e88394cc4b9741c",
       "FsIKSha256": "af93f07681d4e0d514eb68a8e771bc40ec0d6042ac9f0060a2aab77a729a5b61",
-      "CurrentSourceSha256": "7c083f68255512097222d8e66d4115ee94eb06edc9a5261bab07ab57834b9b62"
+      "CurrentSourceSha256": "e7d4142e3d1d284595a30ce9af6b5138201664a3cda66ce400b9fe5ea574c801"
     },
     "Trajectory.fs": {
       "ChampionSha256": "6226172d555b833686bd64eaa3980e7ce12c2422ccab97a6d3d25c77db0aa043",
@@ -24,7 +24,7 @@
     }
   },
   "NamespaceChange": "Axol.Kinematics -\u003E FsIK",
-  "PackageVersion": "0.1.0-local.3",
+  "PackageVersion": "0.1.0-local.4",
   "ExtractionPackageVersion": "0.1.0-local.1",
   "Optimization": "Internal immutable double-precision geometry structs; public API, arithmetic order, SVD, seeds, bounds, tolerances and sampling preserved. Frozen validation unchanged.",
   "PreviousVersionProvenance": {
@@ -34,7 +34,7 @@
       "Geometry.fs": {
         "ChampionSha256": "ec2337429ccaa391f0a5f850aa683253216269e2e3dfbb2dd061da3775ed336e",
         "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a",
-        "CurrentSourceSha256": "3285be2ce8035f9246dd23a7e8902d2c3f8d62497ceebc46757325bf9ac40102"
+        "CurrentSourceSha256": "9f56a4a3d5ea6f8644bbb94b062e4a3cd0aabaa3f039af5a6bfc02ea79954c53"
       },
       "Solver.fs": {
         "ChampionSha256": "c773da97da856f8e7069dce80b89c137e253cc172809c8102e88394cc4b9741c",
@@ -44,7 +44,7 @@
       "Trajectory.fs": {
         "ChampionSha256": "6226172d555b833686bd64eaa3980e7ce12c2422ccab97a6d3d25c77db0aa043",
         "FsIKSha256": "0976537a65cba0ce750cf7f6b0da626de4f6ce634da40342eb4c3a7a915833ca",
-        "CurrentSourceSha256": "9a59ff975109fd46dd7688b4df2763e2c0f065567ba0da65ad133bb53befd227"
+        "CurrentSourceSha256": "88bd66fbd0501c7591bc22a99b5c2dd3bfc4c1123c915b3e0ead19647fdfe119"
       },
       "Translation.fs": {
         "ChampionSha256": "12731cdd85ee41be7e34df077f77ce62bd284a7322fe9420b3b422680c5dbe25",
@@ -53,85 +53,206 @@
       }
     },
     "NamespaceChange": "Axol.Kinematics -\u003E FsIK",
-    "PackageVersion": "0.1.0-local.2",
+    "PackageVersion": "0.1.0-local.3",
     "ExtractionPackageVersion": "0.1.0-local.1",
     "Optimization": "Internal immutable double-precision geometry structs; public API, arithmetic order, SVD, seeds, bounds, tolerances and sampling preserved. Frozen validation unchanged.",
-    "Validation": {
-      "Acceptance": {
-        "Accepted": true,
-        "AcceptedUtc": "2026-10-05T19:45:33.567833\u002B00:00",
-        "CanonicalPathSlowdownDisclosed": true,
-        "Decision": "Adopt for lower allocations with disclosed short-warmup latency tradeoff; all frozen gates pass.",
-        "LongerWarmupBaselinePathMs": 3.9729,
-        "LongerWarmupCandidatePathMs": 3.645963,
-        "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
-        "TimingInvestigated": true,
-        "Version": "0.1.0-local.2"
+    "PreviousVersionProvenance": {
+      "CampaignRun": "c152a48d-5d49-48d5-ad0d-c6e848b03a58",
+      "ChampionCommit": "12fd364727721b7554f6b7ff3fd81aa2d544bffa",
+      "Files": {
+        "Geometry.fs": {
+          "ChampionSha256": "ec2337429ccaa391f0a5f850aa683253216269e2e3dfbb2dd061da3775ed336e",
+          "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a",
+          "CurrentSourceSha256": "3285be2ce8035f9246dd23a7e8902d2c3f8d62497ceebc46757325bf9ac40102"
+        },
+        "Solver.fs": {
+          "ChampionSha256": "c773da97da856f8e7069dce80b89c137e253cc172809c8102e88394cc4b9741c",
+          "FsIKSha256": "af93f07681d4e0d514eb68a8e771bc40ec0d6042ac9f0060a2aab77a729a5b61",
+          "CurrentSourceSha256": "7c083f68255512097222d8e66d4115ee94eb06edc9a5261bab07ab57834b9b62"
+        },
+        "Trajectory.fs": {
+          "ChampionSha256": "6226172d555b833686bd64eaa3980e7ce12c2422ccab97a6d3d25c77db0aa043",
+          "FsIKSha256": "0976537a65cba0ce750cf7f6b0da626de4f6ce634da40342eb4c3a7a915833ca",
+          "CurrentSourceSha256": "9a59ff975109fd46dd7688b4df2763e2c0f065567ba0da65ad133bb53befd227"
+        },
+        "Translation.fs": {
+          "ChampionSha256": "12731cdd85ee41be7e34df077f77ce62bd284a7322fe9420b3b422680c5dbe25",
+          "FsIKSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb",
+          "CurrentSourceSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb"
+        }
       },
-      "AdapterTestsPassed": 61,
-      "BenchmarkBuildPassed": true,
+      "NamespaceChange": "Axol.Kinematics -\u003E FsIK",
+      "PackageVersion": "0.1.0-local.2",
+      "ExtractionPackageVersion": "0.1.0-local.1",
+      "Optimization": "Internal immutable double-precision geometry structs; public API, arithmetic order, SVD, seeds, bounds, tolerances and sampling preserved. Frozen validation unchanged.",
+      "Validation": {
+        "Acceptance": {
+          "Accepted": true,
+          "AcceptedUtc": "2026-10-05T19:45:33.567833\u002B00:00",
+          "CanonicalPathSlowdownDisclosed": true,
+          "Decision": "Adopt for lower allocations with disclosed short-warmup latency tradeoff; all frozen gates pass.",
+          "LongerWarmupBaselinePathMs": 3.9729,
+          "LongerWarmupCandidatePathMs": 3.645963,
+          "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
+          "TimingInvestigated": true,
+          "Version": "0.1.0-local.2"
+        },
+        "AdapterTestsPassed": 61,
+        "BenchmarkBuildPassed": true,
+        "Comparison": {
+          "BaselineVersion": "0.1.0-local.1",
+          "CandidateVersion": "0.1.0-local.2",
+          "CompleteRunsPerVersion": 3,
+          "EndpointOutputDifferences": 0,
+          "KnownReachableTargets": 1100,
+          "MeanAllocationReductionPercent": 39.69425298732553,
+          "MeanNormalizedAllocation": 0.6030574701267447,
+          "Measurements": [
+            {
+              "AllocationReductionPercent": 43.03081565383343,
+              "BaselineBytes": 103330.6,
+              "BaselineMilliseconds": 0.0581425,
+              "CandidateBytes": 58866.6,
+              "CandidateMilliseconds": 0.051802499999999994,
+              "Name": "left-up-10mm",
+              "TimeChangePercent": -10.904243883561948
+            },
+            {
+              "AllocationReductionPercent": 43.84945933152517,
+              "BaselineBytes": 151682.6,
+              "BaselineMilliseconds": 0.081055,
+              "CandidateBytes": 85170.6,
+              "CandidateMilliseconds": 0.07411,
+              "Name": "left-up-50.8mm",
+              "TimeChangePercent": -8.568256122386043
+            },
+            {
+              "AllocationReductionPercent": 45.270447756331286,
+              "BaselineBytes": 98218.6,
+              "BaselineMilliseconds": 0.0521425,
+              "CandidateBytes": 53754.6,
+              "CandidateMilliseconds": 0.0488725,
+              "Name": "right-up-50.8mm",
+              "TimeChangePercent": -6.271275830656375
+            },
+            {
+              "AllocationReductionPercent": 42.5418384619443,
+              "BaselineBytes": 1868842.6,
+              "BaselineMilliseconds": 0.9344575,
+              "CandidateBytes": 1073802.6,
+              "CandidateMilliseconds": 0.9150775,
+              "Name": "left-straight-up-50.8mm",
+              "TimeChangePercent": -2.073930596094531
+            },
+            {
+              "AllocationReductionPercent": 32.824345020695986,
+              "BaselineBytes": 3175253,
+              "BaselineMilliseconds": 1.5529625,
+              "CandidateBytes": 2132997,
+              "CandidateMilliseconds": 1.5180125,
+              "Name": "left-path-10mm",
+              "TimeChangePercent": -2.2505372795543988
+            },
+            {
+              "AllocationReductionPercent": 30.64861169962303,
+              "BaselineBytes": 9121405,
+              "BaselineMilliseconds": 4.1689,
+              "CandidateBytes": 6325821,
+              "CandidateMilliseconds": 5.4674875,
+              "Name": "left-path-50.8mm",
+              "TimeChangePercent": 31.149403919499143
+            }
+          ],
+          "PathSamplesIdentical": true,
+          "PreviouslyPassingCases": 1164,
+          "PublicApiUnchanged": true,
+          "RequiresTimingInvestigation": true,
+          "ValidationGatesPassedPerRun": 9
+        },
+        "ConsumersLoadPackagedDll": [
+          "C:\\s\\repos\\axol-controller\\src/Axol.MathNetPlanner",
+          "C:\\s\\repos\\axol-controller\\tests/Axol.Kinematics.Tests",
+          "C:\\s\\repos\\axol-controller\\benchmarks/Axol.Ik.Benchmarks",
+          "C:\\s\\repos\\FsIK\\validation"
+        ],
+        "ControllerTestsPassed": 77,
+        "EmbeddedLinuxArm64PlannerSha256": "c1dc4226c13bfe446881dc8443f95499f6a1cc016e9416263a2a62c03564652a",
+        "FantomasPassed": true,
+        "FrozenValidationUnchanged": true,
+        "LibraryDllSha256": "123f057e23d3d63131ff8bd75c90b24dd0b3706118ff8882258c6c33f823d82a",
+        "NativePlannerBuiltWithNewPackagedDll": true,
+        "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
+        "PackagedSourceProvenanceMatches": true,
+        "PreviousPackageUnchanged": true,
+        "StandaloneTestsPassed": 8,
+        "VerifiedUtc": "2026-10-05T19:47:44.3324893\u002B00:00",
+        "Version": "0.1.0-local.2"
+      }
+    },
+    "BufferOptimization": "Per-call preallocated .NET List\u003CT\u003E scratch; streamed 65-point tip derivative checks and value-tuple segment list. Immutable public outputs, sampling and solver preserved; frozen contract unchanged.",
+    "Validation": {
       "Comparison": {
-        "BaselineVersion": "0.1.0-local.1",
-        "CandidateVersion": "0.1.0-local.2",
+        "BaselineVersion": "0.1.0-local.2",
+        "CandidateVersion": "0.1.0-local.3",
         "CompleteRunsPerVersion": 3,
         "EndpointOutputDifferences": 0,
         "KnownReachableTargets": 1100,
-        "MeanAllocationReductionPercent": 39.69425298732553,
-        "MeanNormalizedAllocation": 0.6030574701267447,
+        "MeanAllocationReductionPercent": 12.583796652055312,
+        "MeanNormalizedAllocation": 0.8741620334794469,
         "Measurements": [
           {
-            "AllocationReductionPercent": 43.03081565383343,
-            "BaselineBytes": 103330.6,
-            "BaselineMilliseconds": 0.0581425,
+            "AllocationReductionPercent": 0,
+            "BaselineBytes": 58866.6,
+            "BaselineMilliseconds": 0.05134,
             "CandidateBytes": 58866.6,
-            "CandidateMilliseconds": 0.051802499999999994,
+            "CandidateMilliseconds": 0.050105,
             "Name": "left-up-10mm",
-            "TimeChangePercent": -10.904243883561948
+            "TimeChangePercent": -2.4055317491234907
           },
           {
-            "AllocationReductionPercent": 43.84945933152517,
-            "BaselineBytes": 151682.6,
-            "BaselineMilliseconds": 0.081055,
+            "AllocationReductionPercent": 0,
+            "BaselineBytes": 85170.6,
+            "BaselineMilliseconds": 0.0734575,
             "CandidateBytes": 85170.6,
-            "CandidateMilliseconds": 0.07411,
+            "CandidateMilliseconds": 0.07478749999999999,
             "Name": "left-up-50.8mm",
-            "TimeChangePercent": -8.568256122386043
+            "TimeChangePercent": 1.810570738181938
           },
           {
-            "AllocationReductionPercent": 45.270447756331286,
-            "BaselineBytes": 98218.6,
-            "BaselineMilliseconds": 0.0521425,
+            "AllocationReductionPercent": 0,
+            "BaselineBytes": 53754.6,
+            "BaselineMilliseconds": 0.047952499999999995,
             "CandidateBytes": 53754.6,
-            "CandidateMilliseconds": 0.0488725,
+            "CandidateMilliseconds": 0.0480675,
             "Name": "right-up-50.8mm",
-            "TimeChangePercent": -6.271275830656375
+            "TimeChangePercent": 0.2398206558573701
           },
           {
-            "AllocationReductionPercent": 42.5418384619443,
-            "BaselineBytes": 1868842.6,
-            "BaselineMilliseconds": 0.9344575,
+            "AllocationReductionPercent": 0,
+            "BaselineBytes": 1073802.6,
+            "BaselineMilliseconds": 0.9027799999999999,
             "CandidateBytes": 1073802.6,
-            "CandidateMilliseconds": 0.9150775,
+            "CandidateMilliseconds": 0.89932,
             "Name": "left-straight-up-50.8mm",
-            "TimeChangePercent": -2.073930596094531
+            "TimeChangePercent": -0.3832605950508272
           },
           {
-            "AllocationReductionPercent": 32.824345020695986,
-            "BaselineBytes": 3175253,
-            "BaselineMilliseconds": 1.5529625,
-            "CandidateBytes": 2132997,
-            "CandidateMilliseconds": 1.5180125,
+            "AllocationReductionPercent": 28.106181115116435,
+            "BaselineBytes": 2132997,
+            "BaselineMilliseconds": 1.54675,
+            "CandidateBytes": 1533493,
+            "CandidateMilliseconds": 2.4609,
             "Name": "left-path-10mm",
-            "TimeChangePercent": -2.2505372795543988
+            "TimeChangePercent": 59.101341522547266
           },
           {
-            "AllocationReductionPercent": 30.64861169962303,
-            "BaselineBytes": 9121405,
-            "BaselineMilliseconds": 4.1689,
-            "CandidateBytes": 6325821,
-            "CandidateMilliseconds": 5.4674875,
+            "AllocationReductionPercent": 47.39659879721542,
+            "BaselineBytes": 6325821,
+            "BaselineMilliseconds": 5.78385,
+            "CandidateBytes": 3327597,
+            "CandidateMilliseconds": 4.426375,
             "Name": "left-path-50.8mm",
-            "TimeChangePercent": 31.149403919499143
+            "TimeChangePercent": -23.470093449864706
           }
         ],
         "PathSamplesIdentical": true,
@@ -140,90 +261,158 @@
         "RequiresTimingInvestigation": true,
         "ValidationGatesPassedPerRun": 9
       },
-      "ConsumersLoadPackagedDll": [
-        "C:\\s\\repos\\axol-controller\\src/Axol.MathNetPlanner",
-        "C:\\s\\repos\\axol-controller\\tests/Axol.Kinematics.Tests",
-        "C:\\s\\repos\\axol-controller\\benchmarks/Axol.Ik.Benchmarks",
-        "C:\\s\\repos\\FsIK\\validation"
+      "ControllerPinnedVersion": "0.1.0-local.2",
+      "ExperimentBranch": "codex/fsik-trajectory-buffers",
+      "FrozenContractUnchanged": true,
+      "LibraryDllSha256": "84c5d4838ba32e0a34947c638ce95026b2723f7c7d1d95cc239418c5bd10b8d5",
+      "LongerWarmupBaseline": [
+        {
+          "Bytes": 120.00208,
+          "Milliseconds": 0.000213992,
+          "Name": "forward"
+        },
+        {
+          "Bytes": 2336.0104,
+          "Milliseconds": 0.0029968,
+          "Name": "jacobianRows"
+        },
+        {
+          "Bytes": 85209.512,
+          "Milliseconds": 0.0879205,
+          "Name": "endpoint-50.8mm"
+        },
+        {
+          "Bytes": 1792905.04,
+          "Milliseconds": 1.6133279999999999,
+          "Name": "solve-100-waypoints"
+        },
+        {
+          "Bytes": 4503537.04,
+          "Milliseconds": 2.226418,
+          "Name": "retime-100-waypoints"
+        },
+        {
+          "Bytes": 2130425.04,
+          "Milliseconds": 1.413698,
+          "Name": "complete-path-10mm"
+        },
+        {
+          "Bytes": 6314249.04,
+          "Milliseconds": 3.860646,
+          "Name": "complete-path-50.8mm"
+        }
       ],
-      "ControllerTestsPassed": 77,
-      "EmbeddedLinuxArm64PlannerSha256": "c1dc4226c13bfe446881dc8443f95499f6a1cc016e9416263a2a62c03564652a",
-      "FantomasPassed": true,
-      "FrozenValidationUnchanged": true,
-      "LibraryDllSha256": "123f057e23d3d63131ff8bd75c90b24dd0b3706118ff8882258c6c33f823d82a",
-      "NativePlannerBuiltWithNewPackagedDll": true,
-      "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
-      "PackagedSourceProvenanceMatches": true,
+      "LongerWarmupCandidate": [
+        {
+          "Bytes": 120.00208,
+          "Milliseconds": 0.000212776,
+          "Name": "forward"
+        },
+        {
+          "Bytes": 2336.0104,
+          "Milliseconds": 0.00179799,
+          "Name": "jacobianRows"
+        },
+        {
+          "Bytes": 85174.184,
+          "Milliseconds": 0.0843698,
+          "Name": "endpoint-50.8mm"
+        },
+        {
+          "Bytes": 1792905.04,
+          "Milliseconds": 1.628581,
+          "Name": "solve-100-waypoints"
+        },
+        {
+          "Bytes": 1522921.04,
+          "Milliseconds": 1.7071809999999998,
+          "Name": "retime-100-waypoints"
+        },
+        {
+          "Bytes": 1534449.04,
+          "Milliseconds": 1.334604,
+          "Name": "complete-path-10mm"
+        },
+        {
+          "Bytes": 3333633.04,
+          "Milliseconds": 3.355351,
+          "Name": "complete-path-50.8mm"
+        }
+      ],
+      "PackageConsumerVerified": true,
+      "PackageSha256": "4ace7da4187a2473d16728599191be7db2cd8d17277298eee4aeecc66ccc75db",
+      "PackageVersion": "0.1.0-local.3",
+      "PreservedBaselineBranch": "codex/fsik-structs-baseline",
       "PreviousPackageUnchanged": true,
-      "StandaloneTestsPassed": 8,
-      "VerifiedUtc": "2026-10-05T19:47:44.3324893\u002B00:00",
-      "Version": "0.1.0-local.2"
+      "StandaloneTestsPassed": 9,
+      "VerifiedUtc": "2026-10-05T20:38:10.0448771\u002B00:00"
     }
   },
   "BufferOptimization": "Per-call preallocated .NET List\u003CT\u003E scratch; streamed 65-point tip derivative checks and value-tuple segment list. Immutable public outputs, sampling and solver preserved; frozen contract unchanged.",
+  "WorkspaceOptimization": "Weak per-chain cache of immutable limits and exclusively rented mutable numerical storage. Candidate angles, Jacobian/axis storage, result vectors, and active sets reused. No targets, solved angles, SVD factors or model responses cached; immutable results own their snapshots.",
   "Validation": {
     "Comparison": {
-      "BaselineVersion": "0.1.0-local.2",
-      "CandidateVersion": "0.1.0-local.3",
+      "BaselineVersion": "0.1.0-local.3",
+      "CandidateVersion": "0.1.0-local.4",
       "CompleteRunsPerVersion": 3,
       "EndpointOutputDifferences": 0,
       "KnownReachableTargets": 1100,
-      "MeanAllocationReductionPercent": 12.583796652055312,
-      "MeanNormalizedAllocation": 0.8741620334794469,
+      "MeanAllocationReductionPercent": 49.03359586099468,
+      "MeanNormalizedAllocation": 0.5096640413900532,
       "Measurements": [
         {
-          "AllocationReductionPercent": 0,
+          "AllocationReductionPercent": 56.31716457210031,
           "BaselineBytes": 58866.6,
-          "BaselineMilliseconds": 0.05134,
-          "CandidateBytes": 58866.6,
-          "CandidateMilliseconds": 0.050105,
+          "BaselineMilliseconds": 0.050905,
+          "CandidateBytes": 25714.6,
+          "CandidateMilliseconds": 0.06219,
           "Name": "left-up-10mm",
-          "TimeChangePercent": -2.4055317491234907
+          "TimeChangePercent": 22.16874570277969
         },
         {
-          "AllocationReductionPercent": 0,
+          "AllocationReductionPercent": 56.62047701906528,
           "BaselineBytes": 85170.6,
-          "BaselineMilliseconds": 0.0734575,
-          "CandidateBytes": 85170.6,
-          "CandidateMilliseconds": 0.07478749999999999,
+          "BaselineMilliseconds": 0.07703499999999999,
+          "CandidateBytes": 36946.6,
+          "CandidateMilliseconds": 0.07339999999999999,
           "Name": "left-up-50.8mm",
-          "TimeChangePercent": 1.810570738181938
+          "TimeChangePercent": -4.718634386966958
         },
         {
-          "AllocationReductionPercent": 0,
+          "AllocationReductionPercent": 56.85094856998285,
           "BaselineBytes": 53754.6,
-          "BaselineMilliseconds": 0.047952499999999995,
-          "CandidateBytes": 53754.6,
-          "CandidateMilliseconds": 0.0480675,
+          "BaselineMilliseconds": 0.0498925,
+          "CandidateBytes": 23194.6,
+          "CandidateMilliseconds": 0.045665,
           "Name": "right-up-50.8mm",
-          "TimeChangePercent": 0.2398206558573701
+          "TimeChangePercent": -8.47321741744752
         },
         {
-          "AllocationReductionPercent": 0,
+          "AllocationReductionPercent": 56.09075634571942,
           "BaselineBytes": 1073802.6,
-          "BaselineMilliseconds": 0.9027799999999999,
-          "CandidateBytes": 1073802.6,
-          "CandidateMilliseconds": 0.89932,
+          "BaselineMilliseconds": 0.9084049999999999,
+          "CandidateBytes": 471498.6,
+          "CandidateMilliseconds": 0.9029299999999999,
           "Name": "left-straight-up-50.8mm",
-          "TimeChangePercent": -0.3832605950508272
+          "TimeChangePercent": -0.6027047407268782
         },
         {
-          "AllocationReductionPercent": 28.106181115116435,
-          "BaselineBytes": 2132997,
-          "BaselineMilliseconds": 1.54675,
-          "CandidateBytes": 1533493,
-          "CandidateMilliseconds": 2.4609,
+          "AllocationReductionPercent": 38.79822079396516,
+          "BaselineBytes": 1533493,
+          "BaselineMilliseconds": 2.48915,
+          "CandidateBytes": 938525,
+          "CandidateMilliseconds": 1.35045,
           "Name": "left-path-10mm",
-          "TimeChangePercent": 59.101341522547266
+          "TimeChangePercent": -45.746539983528514
         },
         {
-          "AllocationReductionPercent": 47.39659879721542,
-          "BaselineBytes": 6325821,
-          "BaselineMilliseconds": 5.78385,
-          "CandidateBytes": 3327597,
-          "CandidateMilliseconds": 4.426375,
+          "AllocationReductionPercent": 29.524007865135115,
+          "BaselineBytes": 3327597,
+          "BaselineMilliseconds": 4.37035,
+          "CandidateBytes": 2345157,
+          "CandidateMilliseconds": 3.3795,
           "Name": "left-path-50.8mm",
-          "TimeChangePercent": -23.470093449864706
+          "TimeChangePercent": -22.672097200453056
         }
       ],
       "PathSamplesIdentical": true,
@@ -233,89 +422,99 @@
       "ValidationGatesPassedPerRun": 9
     },
     "ControllerPinnedVersion": "0.1.0-local.2",
-    "ExperimentBranch": "codex/fsik-trajectory-buffers",
+    "ExperimentBranch": "codex/fsik-solver-workspace",
     "FrozenContractUnchanged": true,
-    "LibraryDllSha256": "84c5d4838ba32e0a34947c638ce95026b2723f7c7d1d95cc239418c5bd10b8d5",
+    "LibraryDllSha256": "13a2269e35613d0be0ddaa551a3eb1e23cc290606610a445f5caa15b514e79a4",
     "LongerWarmupBaseline": [
       {
         "Bytes": 120.00208,
-        "Milliseconds": 0.000213992,
+        "Milliseconds": 0.000207134,
         "Name": "forward"
       },
       {
         "Bytes": 2336.0104,
-        "Milliseconds": 0.0029968,
+        "Milliseconds": 0.00296304,
         "Name": "jacobianRows"
       },
       {
-        "Bytes": 85209.512,
-        "Milliseconds": 0.0879205,
+        "Bytes": 59077.288,
+        "Milliseconds": 0.06415770000000001,
+        "Name": "endpoint-10mm"
+      },
+      {
+        "Bytes": 85168.104,
+        "Milliseconds": 0.0780865,
         "Name": "endpoint-50.8mm"
       },
       {
         "Bytes": 1792905.04,
-        "Milliseconds": 1.6133279999999999,
+        "Milliseconds": 1.736148,
         "Name": "solve-100-waypoints"
       },
       {
-        "Bytes": 4503537.04,
-        "Milliseconds": 2.226418,
+        "Bytes": 1522921.04,
+        "Milliseconds": 1.949999,
         "Name": "retime-100-waypoints"
       },
       {
-        "Bytes": 2130425.04,
-        "Milliseconds": 1.413698,
+        "Bytes": 1534449.04,
+        "Milliseconds": 1.326798,
         "Name": "complete-path-10mm"
       },
       {
-        "Bytes": 6314249.04,
-        "Milliseconds": 3.860646,
+        "Bytes": 3333633.04,
+        "Milliseconds": 3.5110379999999997,
         "Name": "complete-path-50.8mm"
       }
     ],
     "LongerWarmupCandidate": [
       {
         "Bytes": 120.00208,
-        "Milliseconds": 0.000212776,
+        "Milliseconds": 0.000237282,
         "Name": "forward"
       },
       {
         "Bytes": 2336.0104,
-        "Milliseconds": 0.00179799,
+        "Milliseconds": 0.0014741300000000001,
         "Name": "jacobianRows"
       },
       {
-        "Bytes": 85174.184,
-        "Milliseconds": 0.0843698,
+        "Bytes": 25712.104,
+        "Milliseconds": 0.0480342,
+        "Name": "endpoint-10mm"
+      },
+      {
+        "Bytes": 36944.104,
+        "Milliseconds": 0.08165810000000001,
         "Name": "endpoint-50.8mm"
       },
       {
-        "Bytes": 1792905.04,
-        "Milliseconds": 1.628581,
+        "Bytes": 810753.04,
+        "Milliseconds": 1.565954,
         "Name": "solve-100-waypoints"
       },
       {
         "Bytes": 1522921.04,
-        "Milliseconds": 1.7071809999999998,
+        "Milliseconds": 1.929743,
         "Name": "retime-100-waypoints"
       },
       {
-        "Bytes": 1534449.04,
-        "Milliseconds": 1.334604,
+        "Bytes": 939769.04,
+        "Milliseconds": 1.276752,
         "Name": "complete-path-10mm"
       },
       {
-        "Bytes": 3333633.04,
-        "Milliseconds": 3.355351,
+        "Bytes": 2351481.04,
+        "Milliseconds": 3.161039,
         "Name": "complete-path-50.8mm"
       }
     ],
     "PackageConsumerVerified": true,
-    "PackageSha256": "4ace7da4187a2473d16728599191be7db2cd8d17277298eee4aeecc66ccc75db",
-    "PackageVersion": "0.1.0-local.3",
-    "PreservedBaselineBranch": "codex/fsik-structs-baseline",
+    "PackageSha256": "a5ab47a2e3ee64859fbf1999558256c0ef49fce444faad694e19d44546d37744",
+    "PackageVersion": "0.1.0-local.4",
+    "PreviousExperimentBranch": "codex/fsik-trajectory-buffers",
     "PreviousPackageUnchanged": true,
-    "StandaloneTestsPassed": 9,
-    "VerifiedUtc": "2026-10-05T20:38:10.0448771\u002B00:00"
+    "StandaloneTestsPassed": 10,
+    "VerifiedUtc": "2026-10-05T21:01:04.0008626\u002B00:00"
   }
 }

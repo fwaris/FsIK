@@ -1,6 +1,8 @@
 namespace FsIK
 
 open System
+open System.Collections.Concurrent
+open System.Runtime.CompilerServices
 open MathNet.Numerics.LinearAlgebra
 
 type Options =
@@ -32,124 +34,199 @@ module Solver =
           MaxStep = 0.1
           OrientationWeight = 0.25 }
 
+    type private ReducedBuffers =
+        { Jacobian: Matrix<float>
+          Scaled: Vector<float>
+          Step: Vector<float> }
+
+    type private Workspace =
+        { Angles: ResizeArray<float>
+          Candidate: ResizeArray<float>
+          BestCandidate: ResizeArray<float>
+          Axes: struct (ValueVec3 * ValueVec3) array
+          Jacobian: Matrix<float>
+          Error: Vector<float>
+          Coefficients: Vector<float>
+          Scaled: Vector<float>
+          Delta: Vector<float>
+          Free: ResizeArray<int>
+          Blocked: ResizeArray<int>
+          Reduced: ReducedBuffers option array }
+
+    let private angleBuffer (count: int) =
+        let buffer = ResizeArray<float>(count)
+
+        for _ in 1..count do
+            buffer.Add 0.
+
+        buffer
+
+    let private workspace count =
+        { Angles = angleBuffer count
+          Candidate = angleBuffer count
+          BestCandidate = angleBuffer count
+          Axes = Array.zeroCreate count
+          Jacobian = Matrix<float>.Build.Dense(6, count)
+          Error = Vector<float>.Build.Dense 6
+          Coefficients = Vector<float>.Build.Dense 6
+          Scaled = Vector<float>.Build.Dense count
+          Delta = Vector<float>.Build.Dense count
+          Free = ResizeArray<int>(count)
+          Blocked = ResizeArray<int>(count)
+          Reduced = Array.create count None }
+
+    // A thin ownership boundary: cached model metadata is immutable; rented
+    // numerical storage is exclusive until returned in the solve's finally block.
+    // Weak chain keys allow both metadata and scratch to die with the model.
+    type private ModelStorage(chain: Chain) =
+        let limits = Geometry.limits chain
+        let bounds = List.toArray limits
+        let available = ConcurrentBag<Workspace>()
+        member _.Limits = limits
+        member _.Bounds = bounds
+
+        member _.Rent() =
+            let mutable rented = Unchecked.defaultof<Workspace>
+
+            if available.TryTake(&rented) then
+                rented
+            else
+                workspace bounds.Length
+
+        member _.Return(rented) = available.Add rented
+
+    let private models = ConditionalWeakTable<Chain, ModelStorage>()
+
+    let private prepare =
+        ConditionalWeakTable<Chain, ModelStorage>.CreateValueCallback(fun chain -> ModelStorage(chain))
+
     let private bounded limits angles =
         List.map2 (fun limit value -> Math.Clamp(value, limit.Lower, limit.Upper)) limits angles
 
-    let private summary chain (target: ValuePose) angles iterations =
-        let struct (position, orientation) =
-            ValueGeometry.poseError target (Geometry.forwardValue chain angles)
+    let private scoreErrors options position orientation =
+        position ** 2. + (options.OrientationWeight * orientation) ** 2.
 
-        { Angles = angles
-          PositionError = position
-          OrientationError = orientation
-          Iterations = iterations }
+    let private score options (info: Solution) =
+        scoreErrors options info.PositionError info.OrientationError
 
-    let private score options info =
-        info.PositionError ** 2.
-        + (options.OrientationWeight * info.OrientationError) ** 2.
+    let private withinErrors options position orientation =
+        position <= options.PositionTolerance
+        && orientation <= options.OrientationTolerance
 
-    let private within options info =
-        info.PositionError <= options.PositionTolerance
-        && info.OrientationError <= options.OrientationTolerance
+    let private within options (info: Solution) =
+        withinErrors options info.PositionError info.OrientationError
 
-    let private dampedStep (jacobian: Matrix<float>) (error: Vector<float>) damping =
+    let private dampedStep
+        (jacobian: Matrix<float>)
+        (error: Vector<float>)
+        damping
+        (coefficients: Vector<float>)
+        (scaled: Vector<float>)
+        (result: Vector<float>)
+        =
+        // MathNet still computes the same SVD. Its multiply overloads write into
+        // owned vectors rather than allocating new results each iteration.
         let svd = jacobian.Svd(true)
-        let coefficients = svd.U.TransposeThisAndMultiply(error)
+        svd.U.TransposeThisAndMultiply(error, coefficients)
 
-        let scaled =
-            Vector<float>.Build
-                .Dense(
-                    jacobian.ColumnCount,
-                    fun i ->
-                        if i < svd.S.Count then
-                            coefficients[i] * svd.S[i] / (svd.S[i] * svd.S[i] + damping * damping)
-                        else
-                            0.
-                )
-
-        svd.VT.TransposeThisAndMultiply(scaled)
-
-    let private constrainedStep (jacobian: Matrix<float>) error damping (limits: Limit list) (angles: float list) =
-        // Resolve with outward-pointing joints at their bounds excluded. Simply
-        // clipping an unconstrained step can otherwise stall at a joint limit.
-        let rec activeSet free =
-            if List.isEmpty free then
-                Vector<float>.Build.Dense angles.Length
-            else
-                let selected =
-                    Matrix<float>.Build.Dense(6, free.Length, fun r c -> jacobian[r, free[c]])
-
-                let reduced = dampedStep selected error damping
-
-                let blocked =
-                    free
-                    |> List.mapi (fun index joint -> joint, reduced[index])
-                    |> List.choose (fun (joint, step) ->
-                        if
-                            (angles[joint] <= limits[joint].Lower + 1e-10 && step < 0.)
-                            || (angles[joint] >= limits[joint].Upper - 1e-10 && step > 0.)
-                        then
-                            Some joint
-                        else
-                            None)
-
-                if not (List.isEmpty blocked) then
-                    activeSet (free |> List.filter (fun joint -> not (List.contains joint blocked)))
+        for i in 0 .. jacobian.ColumnCount - 1 do
+            scaled[i] <-
+                if i < svd.S.Count then
+                    coefficients[i] * svd.S[i] / (svd.S[i] * svd.S[i] + damping * damping)
                 else
-                    Vector<float>.Build
-                        .Dense(
-                            angles.Length,
-                            fun joint ->
-                                free
-                                |> List.tryFindIndex ((=) joint)
-                                |> Option.map (fun index -> reduced[index])
-                                |> Option.defaultValue 0.
-                        )
+                    0.
 
-        // The initial active set contains every column already in the Jacobian.
-        // Reuse that matrix and its result when no joint must be excluded.
-        let initial = dampedStep jacobian error damping
+        svd.VT.TransposeThisAndMultiply(scaled, result)
 
-        let rec blockedJoints joint remainingLimits remainingAngles blocked =
-            match remainingLimits, remainingAngles with
-            | limit :: limitTail, angle :: angleTail ->
-                let step = initial[joint]
+    let private reducedBuffers (storage: Workspace) count =
+        match storage.Reduced[count - 1] with
+        | Some buffers -> buffers
+        | None ->
+            let buffers =
+                { Jacobian = Matrix<float>.Build.Dense(6, count)
+                  Scaled = Vector<float>.Build.Dense count
+                  Step = Vector<float>.Build.Dense count }
 
-                let next =
-                    if
-                        (angle <= limit.Lower + 1e-10 && step < 0.)
-                        || (angle >= limit.Upper - 1e-10 && step > 0.)
-                    then
-                        joint :: blocked
+            storage.Reduced[count - 1] <- Some buffers
+            buffers
+
+    let private constrainedStep (storage: Workspace) damping (bounds: Limit array) =
+        dampedStep storage.Jacobian storage.Error damping storage.Coefficients storage.Scaled storage.Delta
+        storage.Blocked.Clear()
+
+        for joint in 0 .. bounds.Length - 1 do
+            let angle, step = storage.Angles[joint], storage.Delta[joint]
+
+            if
+                (angle <= bounds[joint].Lower + 1e-10 && step < 0.)
+                || (angle >= bounds[joint].Upper - 1e-10 && step > 0.)
+            then
+                storage.Blocked.Add joint
+
+        if storage.Blocked.Count <> 0 then
+            storage.Free.Clear()
+
+            for joint in 0 .. bounds.Length - 1 do
+                if not (storage.Blocked.Contains joint) then
+                    storage.Free.Add joint
+
+            let rec activeSet () =
+                if storage.Free.Count = 0 then
+                    storage.Delta.Clear()
+                else
+                    let reduced = reducedBuffers storage storage.Free.Count
+
+                    for column in 0 .. storage.Free.Count - 1 do
+                        for row in 0..5 do
+                            reduced.Jacobian[row, column] <- storage.Jacobian[row, storage.Free[column]]
+
+                    dampedStep reduced.Jacobian storage.Error damping storage.Coefficients reduced.Scaled reduced.Step
+                    storage.Blocked.Clear()
+
+                    for index in 0 .. storage.Free.Count - 1 do
+                        let joint, step = storage.Free[index], reduced.Step[index]
+                        let angle = storage.Angles[joint]
+
+                        if
+                            (angle <= bounds[joint].Lower + 1e-10 && step < 0.)
+                            || (angle >= bounds[joint].Upper - 1e-10 && step > 0.)
+                        then
+                            storage.Blocked.Add joint
+
+                    if storage.Blocked.Count <> 0 then
+                        // Remove backwards so the surviving column order is unchanged.
+                        for index in storage.Free.Count - 1 .. -1 .. 0 do
+                            if storage.Blocked.Contains storage.Free[index] then
+                                storage.Free.RemoveAt index
+
+                        activeSet ()
                     else
-                        blocked
+                        storage.Delta.Clear()
 
-                blockedJoints (joint + 1) limitTail angleTail next
-            | _ -> blocked
+                        for index in 0 .. storage.Free.Count - 1 do
+                            storage.Delta[storage.Free[index]] <- reduced.Step[index]
 
-        match blockedJoints 0 limits angles [] with
-        | [] -> initial
-        | blocked ->
-            activeSet (
-                [ 0 .. angles.Length - 1 ]
-                |> List.filter (fun joint -> not (List.contains joint blocked))
-            )
+            activeSet ()
 
-    let private refine options chain (target: ValuePose) seed =
-        let limits = Geometry.limits chain
+    let private copyAngles (source: ResizeArray<float>) (destination: ResizeArray<float>) =
+        for joint in 0 .. source.Count - 1 do
+            destination[joint] <- source[joint]
 
-        let rec iterate count damping angles =
-            let current = Geometry.forwardValue chain angles
+    let private refine options chain (target: ValuePose) (bounds: Limit array) (storage: Workspace) (seed: float list) =
+        seed |> List.iteri (fun joint angle -> storage.Angles[joint] <- angle)
+
+        let snapshot count position orientation : Solution =
+            { Angles = List.ofSeq storage.Angles
+              PositionError = position
+              OrientationError = orientation
+              Iterations = count }
+
+        let rec iterate count damping =
+            let current = Geometry.forwardBuffer chain storage.Angles
             let struct (position, orientation) = ValueGeometry.poseError target current
 
-            let info =
-                { Angles = angles
-                  PositionError = position
-                  OrientationError = orientation
-                  Iterations = count }
-
-            if within options info || count >= options.MaxIterations then
-                info
+            if withinErrors options position orientation || count >= options.MaxIterations then
+                snapshot count position orientation
             else
                 let dp = ValueGeometry.subtract target.Position current.Position
 
@@ -158,19 +235,21 @@ module Solver =
                         options.OrientationWeight
                         (ValueGeometry.rotationError target.Orientation current.Orientation)
 
-                let error =
-                    Vector<float>.Build.DenseOfArray [| dp.X; dp.Y; dp.Z; dr.X; dr.Y; dr.Z |]
+                storage.Error[0] <- dp.X
+                storage.Error[1] <- dp.Y
+                storage.Error[2] <- dp.Z
+                storage.Error[3] <- dr.X
+                storage.Error[4] <- dr.Y
+                storage.Error[5] <- dr.Z
 
-                // The Jacobian is fresh scratch storage owned by this iteration.
-                // Weight its orientation rows without allocating a second matrix.
-                let j = Geometry.jacobian chain angles
+                Geometry.fillJacobian chain storage.Angles storage.Axes storage.Jacobian
 
-                for column in 0 .. j.ColumnCount - 1 do
+                for column in 0 .. storage.Jacobian.ColumnCount - 1 do
                     for row in 3..5 do
-                        j[row, column] <- j[row, column] * options.OrientationWeight
+                        storage.Jacobian[row, column] <- storage.Jacobian[row, column] * options.OrientationWeight
 
-                let delta = constrainedStep j error damping limits angles
-                let maxDelta = delta.AbsoluteMaximum()
+                constrainedStep storage damping bounds
+                let maxDelta = storage.Delta.AbsoluteMaximum()
 
                 let factor =
                     if maxDelta > options.MaxStep then
@@ -178,37 +257,112 @@ module Solver =
                     else
                         1.
 
-                let candidateAngles alpha =
-                    let rec collect joint remainingLimits remainingAngles =
-                        match remainingLimits, remainingAngles with
-                        | limit :: limitTail, angle :: angleTail ->
-                            let step = delta[joint] * factor
+                let mutable bestPosition = 0.
+                let mutable bestOrientation = 0.
+                let mutable bestScore = 0.
+                // The original five line-search candidates, in the original order.
+                for candidate in 0..4 do
+                    let alpha =
+                        match candidate with
+                        | 0 -> 1.
+                        | 1 -> 0.5
+                        | 2 -> 0.25
+                        | 3 -> 0.125
+                        | _ -> 0.0625
 
-                            Math.Clamp(angle + alpha * step, limit.Lower, limit.Upper)
-                            :: collect (joint + 1) limitTail angleTail
-                        | [], [] -> []
-                        | _ -> invalidArg "angles" "Joint angles and limits must have equal lengths"
+                    for joint in 0 .. bounds.Length - 1 do
+                        let step = storage.Delta[joint] * factor
 
-                    collect 0 limits angles
+                        storage.Candidate[joint] <-
+                            Math.Clamp(storage.Angles[joint] + alpha * step, bounds[joint].Lower, bounds[joint].Upper)
 
-                let candidates =
-                    [ 1.; 0.5; 0.25; 0.125; 0.0625 ]
-                    |> List.map candidateAngles
-                    |> List.map (fun candidate -> summary chain target candidate (count + 1))
+                    let struct (candidatePosition, candidateOrientation) =
+                        ValueGeometry.poseError target (Geometry.forwardBuffer chain storage.Candidate)
 
-                let best = candidates |> List.minBy (score options)
+                    let candidateScore = scoreErrors options candidatePosition candidateOrientation
 
-                if score options best < score options info - 1e-16 then
-                    iterate (count + 1) (max 1e-5 (damping * 0.6)) best.Angles
+                    if candidate = 0 || compare candidateScore bestScore < 0 then
+                        bestPosition <- candidatePosition
+                        bestOrientation <- candidateOrientation
+                        bestScore <- candidateScore
+                        copyAngles storage.Candidate storage.BestCandidate
+
+                if bestScore < scoreErrors options position orientation - 1e-16 then
+                    copyAngles storage.BestCandidate storage.Angles
+                    iterate (count + 1) (max 1e-5 (damping * 0.6))
                 elif damping < 0.5 then
-                    iterate (count + 1) (damping * 3.) angles
+                    iterate (count + 1) (damping * 3.)
                 else
-                    info
+                    snapshot count position orientation
 
-        iterate 0 0.01 seed
+        iterate 0 0.01
+
+    let private solveValid options chain target seed (model: ModelStorage) (storage: Workspace) =
+        let limits = model.Limits
+        let refineSeed = refine options chain target model.Bounds storage
+        let initial = refineSeed seed
+
+        if within options initial then
+            Solved initial
+        else
+            let alternatives =
+                [ for i in 0 .. seed.Length - 1 do
+                      for direction in [ 1.; -1. ] do
+                          yield
+                              seed
+                              |> List.mapi (fun index angle -> if index = i then angle + direction * 0.08 else angle)
+                              |> bounded limits ]
+
+            let attempted = alternatives |> List.map refineSeed
+            let valid = attempted |> List.filter (within options)
+
+            match valid with
+            | [] ->
+                let radicalInverse radix index =
+                    let rec digits remaining weight value =
+                        if remaining = 0 then
+                            value
+                        else
+                            digits
+                                (remaining / radix)
+                                (weight / float radix)
+                                (value + float (remaining % radix) * weight)
+
+                    digits index (1. / float radix) 0.
+
+                let primes = [| 2; 3; 5; 7; 11; 13; 17; 19; 23; 29; 31; 37 |]
+
+                let rec restart index best =
+                    if index > 64 then
+                        Failed(NoConvergence best)
+                    else
+                        let globalSeed =
+                            limits
+                            |> List.mapi (fun joint limit ->
+                                let fraction = radicalInverse primes[joint % primes.Length] index
+                                limit.Lower + fraction * (limit.Upper - limit.Lower))
+
+                        let result = refineSeed globalSeed
+
+                        if within options result then
+                            Solved result
+                        else
+                            restart
+                                (index + 1)
+                                (if score options result < score options best then
+                                     result
+                                 else
+                                     best)
+
+                restart 1 ((initial :: attempted) |> List.minBy (score options))
+            | solutions ->
+                solutions
+                |> List.minBy (fun solution -> List.map2 (fun a b -> (a - b) ** 2.) seed solution.Angles |> List.sum)
+                |> Solved
 
     let solve (options: Options) (chain: Chain) (target: Pose) (seed: float list) : SolveResult =
-        let limits = Geometry.limits chain
+        let model = models.GetValue(chain, prepare)
+        let limits = model.Limits
 
         let validPose =
             [ target.Position.X
@@ -251,70 +405,9 @@ module Solver =
         then
             Failed(InvalidInput "Invalid solver options")
         else
-            let target = ValueGeometry.pose target
-            let initial = refine options chain target seed
+            let storage = model.Rent()
 
-            if within options initial then
-                Solved initial
-            else
-                // Deterministic small perturbations escape straight-arm singularities.
-                // These are mathematical seeds only, never intermediate commands.
-                let alternatives =
-                    [ for i in 0 .. seed.Length - 1 do
-                          for direction in [ 1.; -1. ] do
-                              yield
-                                  seed
-                                  |> List.mapi (fun index angle ->
-                                      if index = i then angle + direction * 0.08 else angle)
-                                  |> bounded limits ]
-
-                let attempted = alternatives |> List.map (refine options chain target)
-                let valid = attempted |> List.filter (within options)
-
-                match valid with
-                | [] ->
-                    // Cover the bounded joint domain when local perturbations remain
-                    // trapped in the same basin. Radical inverses provide repeatable,
-                    // dispersed seeds without shared random state.
-                    let radicalInverse radix index =
-                        let rec digits remaining weight value =
-                            if remaining = 0 then
-                                value
-                            else
-                                digits
-                                    (remaining / radix)
-                                    (weight / float radix)
-                                    (value + float (remaining % radix) * weight)
-
-                        digits index (1. / float radix) 0.
-
-                    let primes = [| 2; 3; 5; 7; 11; 13; 17; 19; 23; 29; 31; 37 |]
-
-                    let rec restart index best =
-                        if index > 64 then
-                            Failed(NoConvergence best)
-                        else
-                            let globalSeed =
-                                limits
-                                |> List.mapi (fun joint limit ->
-                                    let fraction = radicalInverse primes[joint % primes.Length] index
-                                    limit.Lower + fraction * (limit.Upper - limit.Lower))
-
-                            let result = refine options chain target globalSeed
-
-                            if within options result then
-                                Solved result
-                            else
-                                restart
-                                    (index + 1)
-                                    (if score options result < score options best then
-                                         result
-                                     else
-                                         best)
-
-                    restart 1 ((initial :: attempted) |> List.minBy (score options))
-                | solutions ->
-                    solutions
-                    |> List.minBy (fun solution ->
-                        List.map2 (fun a b -> (a - b) ** 2.) seed solution.Angles |> List.sum)
-                    |> Solved
+            try
+                solveValid options chain (ValueGeometry.pose target) seed model storage
+            finally
+                model.Return storage

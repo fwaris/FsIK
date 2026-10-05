@@ -373,6 +373,46 @@ module Geometry =
 
         matrix
 
+    // Every entry is overwritten before use; caller owns both buffers exclusively.
+    let internal fillJacobian
+        (Chain joints)
+        (angles: ResizeArray<float>)
+        (axes: struct (ValueVec3 * ValueVec3) array)
+        (matrix: Matrix<float>)
+        =
+        let rec loop pending (pose: ValuePose) column =
+            match pending with
+            | [] when column = angles.Count -> pose
+            | joint :: rest ->
+                let origin = ValueGeometry.compose pose (ValueGeometry.pose joint.Origin)
+
+                match joint.Kind with
+                | Fixed -> loop rest origin column
+                | Revolute _ when column < angles.Count ->
+                    let axis = ValueGeometry.vector joint.Axis
+                    axes[column] <- struct (origin.Position, ValueGeometry.rotate origin.Orientation axis)
+
+                    let next =
+                        { origin with
+                            Orientation =
+                                ValueGeometry.multiply origin.Orientation (ValueGeometry.rotation axis angles[column]) }
+
+                    loop rest next (column + 1)
+                | _ -> invalidArg "angles" "Joint count mismatch"
+            | _ -> invalidArg "angles" "Joint count mismatch"
+
+        let tip = loop joints ValueGeometry.identity 0
+
+        for column in 0 .. angles.Count - 1 do
+            let struct (origin, axis) = axes[column]
+            let linear = ValueGeometry.cross axis (ValueGeometry.subtract tip.Position origin)
+            matrix[0, column] <- linear.X
+            matrix[1, column] <- linear.Y
+            matrix[2, column] <- linear.Z
+            matrix[3, column] <- axis.X
+            matrix[4, column] <- axis.Y
+            matrix[5, column] <- axis.Z
+
     let jacobianRows (chain: Chain) (angles: float list) : float list list =
         let matrix = jacobian chain angles
         [ for row in 0..5 -> [ for column in 0 .. angles.Length - 1 -> matrix[row, column] ] ]
