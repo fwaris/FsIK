@@ -31,8 +31,8 @@ module Trajectory =
         List.map2 (fun x y -> x + (y - x) * u) a b
 
     let private tip chain angles =
-        let frame = Geometry.forward chain angles
-        Geometry.add frame.Position (Geometry.rotate frame.Orientation (Geometry.v 0. 0. -0.145))
+        let frame = Geometry.forwardValue chain angles
+        ValueGeometry.add frame.Position (ValueGeometry.rotate frame.Orientation (ValueGeometry.v 0. 0. -0.145))
 
     /// Conservative offline commissioning path: quintic easing between waypoints,
     /// stationary at every waypoint. This is not a time-optimal trajectory planner.
@@ -71,7 +71,7 @@ module Trajectory =
                         [ 0..64 ]
                         |> List.map (fun i -> interpolate a b (float i / 64.) |> tip chain)
                         |> List.pairwise
-                        |> List.map (fun (x, y) -> Geometry.norm (Geometry.subtract y x) * 64.)
+                        |> List.map (fun (x, y) -> ValueGeometry.norm (ValueGeometry.subtract y x) * 64.)
                         |> List.max
 
                     let duration =

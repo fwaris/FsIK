@@ -4,21 +4,130 @@
   "Files": {
     "Geometry.fs": {
       "ChampionSha256": "ec2337429ccaa391f0a5f850aa683253216269e2e3dfbb2dd061da3775ed336e",
-      "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a"
+      "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a",
+      "CurrentSourceSha256": "3285be2ce8035f9246dd23a7e8902d2c3f8d62497ceebc46757325bf9ac40102"
     },
     "Solver.fs": {
       "ChampionSha256": "c773da97da856f8e7069dce80b89c137e253cc172809c8102e88394cc4b9741c",
-      "FsIKSha256": "af93f07681d4e0d514eb68a8e771bc40ec0d6042ac9f0060a2aab77a729a5b61"
+      "FsIKSha256": "af93f07681d4e0d514eb68a8e771bc40ec0d6042ac9f0060a2aab77a729a5b61",
+      "CurrentSourceSha256": "7c083f68255512097222d8e66d4115ee94eb06edc9a5261bab07ab57834b9b62"
     },
     "Trajectory.fs": {
       "ChampionSha256": "6226172d555b833686bd64eaa3980e7ce12c2422ccab97a6d3d25c77db0aa043",
-      "FsIKSha256": "0976537a65cba0ce750cf7f6b0da626de4f6ce634da40342eb4c3a7a915833ca"
+      "FsIKSha256": "0976537a65cba0ce750cf7f6b0da626de4f6ce634da40342eb4c3a7a915833ca",
+      "CurrentSourceSha256": "9a59ff975109fd46dd7688b4df2763e2c0f065567ba0da65ad133bb53befd227"
     },
     "Translation.fs": {
       "ChampionSha256": "12731cdd85ee41be7e34df077f77ce62bd284a7322fe9420b3b422680c5dbe25",
-      "FsIKSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb"
+      "FsIKSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb",
+      "CurrentSourceSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb"
     }
   },
   "NamespaceChange": "Axol.Kinematics -\u003E FsIK",
-  "PackageVersion": "0.1.0-local.1"
+  "PackageVersion": "0.1.0-local.2",
+  "ExtractionPackageVersion": "0.1.0-local.1",
+  "Optimization": "Internal immutable double-precision geometry structs; public API, arithmetic order, SVD, seeds, bounds, tolerances and sampling preserved. Frozen validation unchanged.",
+  "Validation": {
+    "Acceptance": {
+      "Accepted": true,
+      "AcceptedUtc": "2026-10-05T19:45:33.567833\u002B00:00",
+      "CanonicalPathSlowdownDisclosed": true,
+      "Decision": "Adopt for lower allocations with disclosed short-warmup latency tradeoff; all frozen gates pass.",
+      "LongerWarmupBaselinePathMs": 3.9729,
+      "LongerWarmupCandidatePathMs": 3.645963,
+      "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
+      "TimingInvestigated": true,
+      "Version": "0.1.0-local.2"
+    },
+    "AdapterTestsPassed": 61,
+    "BenchmarkBuildPassed": true,
+    "Comparison": {
+      "BaselineVersion": "0.1.0-local.1",
+      "CandidateVersion": "0.1.0-local.2",
+      "CompleteRunsPerVersion": 3,
+      "EndpointOutputDifferences": 0,
+      "KnownReachableTargets": 1100,
+      "MeanAllocationReductionPercent": 39.69425298732553,
+      "MeanNormalizedAllocation": 0.6030574701267447,
+      "Measurements": [
+        {
+          "AllocationReductionPercent": 43.03081565383343,
+          "BaselineBytes": 103330.6,
+          "BaselineMilliseconds": 0.0581425,
+          "CandidateBytes": 58866.6,
+          "CandidateMilliseconds": 0.051802499999999994,
+          "Name": "left-up-10mm",
+          "TimeChangePercent": -10.904243883561948
+        },
+        {
+          "AllocationReductionPercent": 43.84945933152517,
+          "BaselineBytes": 151682.6,
+          "BaselineMilliseconds": 0.081055,
+          "CandidateBytes": 85170.6,
+          "CandidateMilliseconds": 0.07411,
+          "Name": "left-up-50.8mm",
+          "TimeChangePercent": -8.568256122386043
+        },
+        {
+          "AllocationReductionPercent": 45.270447756331286,
+          "BaselineBytes": 98218.6,
+          "BaselineMilliseconds": 0.0521425,
+          "CandidateBytes": 53754.6,
+          "CandidateMilliseconds": 0.0488725,
+          "Name": "right-up-50.8mm",
+          "TimeChangePercent": -6.271275830656375
+        },
+        {
+          "AllocationReductionPercent": 42.5418384619443,
+          "BaselineBytes": 1868842.6,
+          "BaselineMilliseconds": 0.9344575,
+          "CandidateBytes": 1073802.6,
+          "CandidateMilliseconds": 0.9150775,
+          "Name": "left-straight-up-50.8mm",
+          "TimeChangePercent": -2.073930596094531
+        },
+        {
+          "AllocationReductionPercent": 32.824345020695986,
+          "BaselineBytes": 3175253,
+          "BaselineMilliseconds": 1.5529625,
+          "CandidateBytes": 2132997,
+          "CandidateMilliseconds": 1.5180125,
+          "Name": "left-path-10mm",
+          "TimeChangePercent": -2.2505372795543988
+        },
+        {
+          "AllocationReductionPercent": 30.64861169962303,
+          "BaselineBytes": 9121405,
+          "BaselineMilliseconds": 4.1689,
+          "CandidateBytes": 6325821,
+          "CandidateMilliseconds": 5.4674875,
+          "Name": "left-path-50.8mm",
+          "TimeChangePercent": 31.149403919499143
+        }
+      ],
+      "PathSamplesIdentical": true,
+      "PreviouslyPassingCases": 1164,
+      "PublicApiUnchanged": true,
+      "RequiresTimingInvestigation": true,
+      "ValidationGatesPassedPerRun": 9
+    },
+    "ConsumersLoadPackagedDll": [
+      "C:\\s\\repos\\axol-controller\\src/Axol.MathNetPlanner",
+      "C:\\s\\repos\\axol-controller\\tests/Axol.Kinematics.Tests",
+      "C:\\s\\repos\\axol-controller\\benchmarks/Axol.Ik.Benchmarks",
+      "C:\\s\\repos\\FsIK\\validation"
+    ],
+    "ControllerTestsPassed": 77,
+    "EmbeddedLinuxArm64PlannerSha256": "c1dc4226c13bfe446881dc8443f95499f6a1cc016e9416263a2a62c03564652a",
+    "FantomasPassed": true,
+    "FrozenValidationUnchanged": true,
+    "LibraryDllSha256": "123f057e23d3d63131ff8bd75c90b24dd0b3706118ff8882258c6c33f823d82a",
+    "NativePlannerBuiltWithNewPackagedDll": true,
+    "PackageSha256": "202dc9eeb4c8f19d658cddf6b9bf9b01b4770414f138350d3c469765d66b32a5",
+    "PackagedSourceProvenanceMatches": true,
+    "PreviousPackageUnchanged": true,
+    "StandaloneTestsPassed": 8,
+    "VerifiedUtc": "2026-10-05T19:47:44.3324893\u002B00:00",
+    "Version": "0.1.0-local.2"
+  }
 }

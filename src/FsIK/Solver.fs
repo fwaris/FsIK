@@ -35,9 +35,9 @@ module Solver =
     let private bounded limits angles =
         List.map2 (fun limit value -> Math.Clamp(value, limit.Lower, limit.Upper)) limits angles
 
-    let private summary chain target angles iterations =
-        let position, orientation =
-            Geometry.poseError target (Geometry.forward chain angles)
+    let private summary chain (target: ValuePose) angles iterations =
+        let struct (position, orientation) =
+            ValueGeometry.poseError target (Geometry.forwardValue chain angles)
 
         { Angles = angles
           PositionError = position
@@ -135,12 +135,12 @@ module Solver =
                 |> List.filter (fun joint -> not (List.contains joint blocked))
             )
 
-    let private refine options chain target seed =
+    let private refine options chain (target: ValuePose) seed =
         let limits = Geometry.limits chain
 
         let rec iterate count damping angles =
-            let current = Geometry.forward chain angles
-            let position, orientation = Geometry.poseError target current
+            let current = Geometry.forwardValue chain angles
+            let struct (position, orientation) = ValueGeometry.poseError target current
 
             let info =
                 { Angles = angles
@@ -151,12 +151,12 @@ module Solver =
             if within options info || count >= options.MaxIterations then
                 info
             else
-                let dp = Geometry.subtract target.Position current.Position
+                let dp = ValueGeometry.subtract target.Position current.Position
 
                 let dr =
-                    Geometry.scale
+                    ValueGeometry.scale
                         options.OrientationWeight
-                        (Geometry.rotationError target.Orientation current.Orientation)
+                        (ValueGeometry.rotationError target.Orientation current.Orientation)
 
                 let error =
                     Vector<float>.Build.DenseOfArray [| dp.X; dp.Y; dp.Z; dr.X; dr.Y; dr.Z |]
@@ -251,6 +251,7 @@ module Solver =
         then
             Failed(InvalidInput "Invalid solver options")
         else
+            let target = ValueGeometry.pose target
             let initial = refine options chain target seed
 
             if within options initial then

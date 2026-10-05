@@ -40,3 +40,36 @@ let ``standalone assembly rejects illegal seed and preserves parallel determinis
         |> Array.Parallel.map (fun _ -> Solver.solve Solver.defaults chain target [ 0. ])
 
     Assert.True(concurrentResults |> Array.forall ((=) sequential))
+
+
+[<Fact>]
+let ``public geometry retains reference records and double precision`` () =
+    Assert.False(typeof<Vec3>.IsValueType)
+    Assert.False(typeof<Quaternion>.IsValueType)
+    Assert.False(typeof<Pose>.IsValueType)
+    let delta = Geometry.v 0.00000001 0. 0.
+    let position = Geometry.v 16. 0. 0.
+    let result = Geometry.add position delta
+    Assert.Equal(16.00000001, result.X)
+    Assert.True(result.X > position.X)
+    let opposite = { W = -1.; X = 0.; Y = 0.; Z = 0. }
+    Assert.Equal(0., Geometry.norm (Geometry.rotationError Geometry.identity.Orientation opposite))
+
+[<Fact>]
+let ``generic forward and jacobian match analytic planar chain at both bounds`` () =
+    for angle in [ -0.75; -0.4; 0.; 0.4; 0.75 ] do
+        let pose = Geometry.forward chain [ angle ]
+        Assert.InRange(abs (pose.Position.X - 0.3 * cos angle), 0., 1e-14)
+        Assert.InRange(abs (pose.Position.Y - 0.3 * sin angle), 0., 1e-14)
+        let rows = Geometry.jacobianRows chain [ angle ]
+        let expected = [ -0.3 * sin angle; 0.3 * cos angle; 0.; 0.; 0.; 1. ]
+        List.iter2 (fun (row: float list) value -> Assert.InRange(abs (row.Head - value), 0., 1e-14)) rows expected
+
+[<Fact>]
+let ``value traversal rejects missing and excess joint angles`` () =
+    for angles in [ []; [ 0.; 0. ] ] do
+        Assert.Throws<ArgumentException>(fun () -> Geometry.forward chain angles |> ignore)
+        |> ignore
+
+        Assert.Throws<ArgumentException>(fun () -> Geometry.jacobianRows chain angles |> ignore)
+        |> ignore

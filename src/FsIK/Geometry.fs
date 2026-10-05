@@ -31,19 +31,51 @@ type Joint =
 
 type Chain = private Chain of Joint list
 
-module Geometry =
-    let v x y z : Vec3 = { X = x; Y = y; Z = z }
-    let add (a: Vec3) (b: Vec3) = v (a.X + b.X) (a.Y + b.Y) (a.Z + b.Z)
-    let subtract (a: Vec3) (b: Vec3) = v (a.X - b.X) (a.Y - b.Y) (a.Z - b.Z)
-    let scale s (a: Vec3) = v (s * a.X) (s * a.Y) (s * a.Z)
+[<Struct>]
+type internal ValueVec3 = { X: float; Y: float; Z: float }
 
-    let norm (a: Vec3) =
+[<Struct>]
+type internal ValueQuaternion =
+    { W: float
+      X: float
+      Y: float
+      Z: float }
+
+[<Struct>]
+type internal ValuePose =
+    { Position: ValueVec3
+      Orientation: ValueQuaternion }
+
+// Internal double-precision geometry avoids boxing and temporary public records.
+// Conversions belong at API boundaries; each numerical call owns its scratch.
+module internal ValueGeometry =
+    let v x y z : ValueVec3 = { X = x; Y = y; Z = z }
+    let vector (a: Vec3) = v a.X a.Y a.Z
+    let publicVector (a: ValueVec3) : Vec3 = { X = a.X; Y = a.Y; Z = a.Z }
+
+    let quaternion (q: Quaternion) : ValueQuaternion = { W = q.W; X = q.X; Y = q.Y; Z = q.Z }
+
+    let publicQuaternion (q: ValueQuaternion) : Quaternion = { W = q.W; X = q.X; Y = q.Y; Z = q.Z }
+
+    let pose (p: Pose) : ValuePose =
+        { Position = vector p.Position
+          Orientation = quaternion p.Orientation }
+
+    let publicPose (p: ValuePose) : Pose =
+        { Position = publicVector p.Position
+          Orientation = publicQuaternion p.Orientation }
+
+    let add (a: ValueVec3) (b: ValueVec3) = v (a.X + b.X) (a.Y + b.Y) (a.Z + b.Z)
+    let subtract (a: ValueVec3) (b: ValueVec3) = v (a.X - b.X) (a.Y - b.Y) (a.Z - b.Z)
+    let scale s (a: ValueVec3) = v (s * a.X) (s * a.Y) (s * a.Z)
+
+    let norm (a: ValueVec3) =
         sqrt (a.X * a.X + a.Y * a.Y + a.Z * a.Z)
 
-    let cross (a: Vec3) (b: Vec3) =
+    let cross (a: ValueVec3) (b: ValueVec3) =
         v (a.Y * b.Z - a.Z * b.Y) (a.Z * b.X - a.X * b.Z) (a.X * b.Y - a.Y * b.X)
 
-    let multiply (a: Quaternion) (b: Quaternion) : Quaternion =
+    let multiply (a: ValueQuaternion) (b: ValueQuaternion) : ValueQuaternion =
         let w = a.W * b.W - a.X * b.X - a.Y * b.Y - a.Z * b.Z
         let x = a.W * b.X + a.X * b.W + a.Y * b.Z - a.Z * b.Y
         let y = a.W * b.Y - a.X * b.Z + a.Y * b.W + a.Z * b.X
@@ -55,9 +87,9 @@ module Geometry =
           Y = y / n
           Z = z / n }
 
-    let conjugate (q: Quaternion) = { q with X = -q.X; Y = -q.Y; Z = -q.Z }
+    let conjugate (q: ValueQuaternion) = { q with X = -q.X; Y = -q.Y; Z = -q.Z }
 
-    let rotate (q: Quaternion) (a: Vec3) =
+    let rotate (q: ValueQuaternion) (a: ValueVec3) =
         let crossX = q.Y * a.Z - q.Z * a.Y
         let crossY = q.Z * a.X - q.X * a.Z
         let crossZ = q.X * a.Y - q.Y * a.X
@@ -68,7 +100,7 @@ module Geometry =
             (a.Y + (twiceW * crossY + 2. * (q.Z * crossX - q.X * crossZ)))
             (a.Z + (twiceW * crossZ + 2. * (q.X * crossY - q.Y * crossX)))
 
-    let private rotation axis angle =
+    let rotation (axis: ValueVec3) angle : ValueQuaternion =
         let factor = sin (angle / 2.) / norm axis
 
         { W = cos (angle / 2.)
@@ -76,26 +108,15 @@ module Geometry =
           Y = axis.Y * factor
           Z = axis.Z * factor }
 
-    let identity: Pose =
+    let identity: ValuePose =
         { Position = v 0. 0. 0.
           Orientation = { W = 1.; X = 0.; Y = 0.; Z = 0. } }
 
-    let compose (a: Pose) (b: Pose) =
-        let q = a.Orientation
-        let p = b.Position
-        let crossX = q.Y * p.Z - q.Z * p.Y
-        let crossY = q.Z * p.X - q.X * p.Z
-        let crossZ = q.X * p.Y - q.Y * p.X
-        let twiceW = 2. * q.W
-
-        { Position =
-            v
-                (a.Position.X + (p.X + (twiceW * crossX + 2. * (q.Y * crossZ - q.Z * crossY))))
-                (a.Position.Y + (p.Y + (twiceW * crossY + 2. * (q.Z * crossX - q.X * crossZ))))
-                (a.Position.Z + (p.Z + (twiceW * crossZ + 2. * (q.X * crossY - q.Y * crossX))))
+    let compose (a: ValuePose) (b: ValuePose) : ValuePose =
+        { Position = add a.Position (rotate a.Orientation b.Position)
           Orientation = multiply a.Orientation b.Orientation }
 
-    let rotationError (desired: Quaternion) (actual: Quaternion) : Vec3 =
+    let rotationError (desired: ValueQuaternion) (actual: ValueQuaternion) =
         let q = multiply desired (conjugate actual)
 
         let q =
@@ -115,8 +136,63 @@ module Geometry =
         else
             scale (2. * atan2 length q.W / length) vector
 
+    let poseError (desired: ValuePose) (actual: ValuePose) =
+        struct (norm (subtract desired.Position actual.Position),
+                norm (rotationError desired.Orientation actual.Orientation))
+
+
+module Geometry =
+    let v x y z : Vec3 = { X = x; Y = y; Z = z }
+
+    let add (a: Vec3) (b: Vec3) =
+        ValueGeometry.add (ValueGeometry.vector a) (ValueGeometry.vector b)
+        |> ValueGeometry.publicVector
+
+    let subtract (a: Vec3) (b: Vec3) =
+        ValueGeometry.subtract (ValueGeometry.vector a) (ValueGeometry.vector b)
+        |> ValueGeometry.publicVector
+
+    let scale s (a: Vec3) =
+        ValueGeometry.scale s (ValueGeometry.vector a) |> ValueGeometry.publicVector
+
+    let norm (a: Vec3) =
+        ValueGeometry.norm (ValueGeometry.vector a)
+
+    let cross (a: Vec3) (b: Vec3) =
+        ValueGeometry.cross (ValueGeometry.vector a) (ValueGeometry.vector b)
+        |> ValueGeometry.publicVector
+
+    let multiply (a: Quaternion) (b: Quaternion) : Quaternion =
+        ValueGeometry.multiply (ValueGeometry.quaternion a) (ValueGeometry.quaternion b)
+        |> ValueGeometry.publicQuaternion
+
+    let conjugate (q: Quaternion) =
+        ValueGeometry.conjugate (ValueGeometry.quaternion q)
+        |> ValueGeometry.publicQuaternion
+
+    let rotate (q: Quaternion) (a: Vec3) =
+        ValueGeometry.rotate (ValueGeometry.quaternion q) (ValueGeometry.vector a)
+        |> ValueGeometry.publicVector
+
+    let private rotation axis angle =
+        ValueGeometry.rotation (ValueGeometry.vector axis) angle
+        |> ValueGeometry.publicQuaternion
+
+    let identity: Pose = ValueGeometry.publicPose ValueGeometry.identity
+
+    let compose (a: Pose) (b: Pose) =
+        ValueGeometry.compose (ValueGeometry.pose a) (ValueGeometry.pose b)
+        |> ValueGeometry.publicPose
+
+    let rotationError (desired: Quaternion) (actual: Quaternion) : Vec3 =
+        ValueGeometry.rotationError (ValueGeometry.quaternion desired) (ValueGeometry.quaternion actual)
+        |> ValueGeometry.publicVector
+
     let poseError (desired: Pose) (actual: Pose) =
-        norm (subtract desired.Position actual.Position), norm (rotationError desired.Orientation actual.Orientation)
+        let struct (position, orientation) =
+            ValueGeometry.poseError (ValueGeometry.pose desired) (ValueGeometry.pose actual)
+
+        position, orientation
 
     let private attr name (node: XElement | null) fallback =
         node
@@ -208,94 +284,70 @@ module Geometry =
             | Fixed -> None
             | Revolute _ -> Some joint.Name)
 
-    let private evaluate collectAxes (Chain joints) angles =
-        let rec loop pending remaining pose axes =
+    let internal forwardValue (Chain joints) (angles: float list) : ValuePose =
+        let rec loop pending remaining (pose: ValuePose) =
             match pending with
-            | [] when remaining = [] -> pose, List.rev axes
+            | [] when remaining = [] -> pose
             | joint :: rest ->
-                let origin = compose pose joint.Origin
+                let origin = ValueGeometry.compose pose (ValueGeometry.pose joint.Origin)
 
                 match joint.Kind, remaining with
-                | Fixed, _ -> loop rest remaining origin axes
+                | Fixed, _ -> loop rest remaining origin
                 | Revolute _, angle :: tail ->
                     let next =
-                        { Position = origin.Position
-                          Orientation = multiply origin.Orientation (rotation joint.Axis angle) }
+                        { origin with
+                            Orientation =
+                                ValueGeometry.multiply
+                                    origin.Orientation
+                                    (ValueGeometry.rotation (ValueGeometry.vector joint.Axis) angle) }
 
-                    let nextAxes =
-                        if collectAxes then
-                            let axis = rotate origin.Orientation joint.Axis
-                            (origin.Position, axis) :: axes
-                        else
-                            axes
-
-                    loop rest tail next nextAxes
+                    loop rest tail next
                 | _ -> invalidArg "angles" "Joint count mismatch"
             | _ -> invalidArg "angles" "Joint count mismatch"
 
-        loop joints angles identity []
+        loop joints angles ValueGeometry.identity
 
-    let forward (Chain joints) (angles: float list) : Pose =
-        // Keep intermediate FK values on the call's stack. Only the final pose
-        // needs the immutable records exposed by the public API.
-        let product aw ax ay az bw bx by bz =
-            let w = aw * bw - ax * bx - ay * by - az * bz
-            let x = aw * bx + ax * bw + ay * bz - az * by
-            let y = aw * by - ax * bz + ay * bw + az * bx
-            let z = aw * bz + ax * by - ay * bx + az * bw
-            let n = sqrt (w * w + x * x + y * y + z * z)
-            struct (w / n, x / n, y / n, z / n)
+    let forward (chain: Chain) (angles: float list) : Pose =
+        forwardValue chain angles |> ValueGeometry.publicPose
 
-        let rec loop pending remaining (struct (px, py, pz, qw, qx, qy, qz)) =
+    let internal jacobian (Chain joints) (angles: float list) =
+        // Origins and axes are value pairs in per-call scratch, in joint order.
+        let axes = Array.zeroCreate<struct (ValueVec3 * ValueVec3)> angles.Length
+
+        let rec loop pending remaining (pose: ValuePose) column =
             match pending with
-            | [] when remaining = [] ->
-                { Position = v px py pz
-                  Orientation = { W = qw; X = qx; Y = qy; Z = qz } }
+            | [] when remaining = [] -> pose
             | joint :: rest ->
-                let p = joint.Origin.Position
-                let crossX = qy * p.Z - qz * p.Y
-                let crossY = qz * p.X - qx * p.Z
-                let crossZ = qx * p.Y - qy * p.X
-                let twiceW = 2. * qw
-                let x = px + (p.X + (twiceW * crossX + 2. * (qy * crossZ - qz * crossY)))
-                let y = py + (p.Y + (twiceW * crossY + 2. * (qz * crossX - qx * crossZ)))
-                let z = pz + (p.Z + (twiceW * crossZ + 2. * (qx * crossY - qy * crossX)))
-                let q = joint.Origin.Orientation
-                let struct (w, rx, ry, rz) = product qw qx qy qz q.W q.X q.Y q.Z
+                let origin = ValueGeometry.compose pose (ValueGeometry.pose joint.Origin)
 
                 match joint.Kind, remaining with
-                | Fixed, _ -> loop rest remaining (struct (x, y, z, w, rx, ry, rz))
+                | Fixed, _ -> loop rest remaining origin column
                 | Revolute _, angle :: tail ->
-                    let factor = sin (angle / 2.) / norm joint.Axis
+                    let axis = ValueGeometry.vector joint.Axis
+                    axes[column] <- struct (origin.Position, ValueGeometry.rotate origin.Orientation axis)
 
-                    let struct (nw, nx, ny, nz) =
-                        product
-                            w
-                            rx
-                            ry
-                            rz
-                            (cos (angle / 2.))
-                            (joint.Axis.X * factor)
-                            (joint.Axis.Y * factor)
-                            (joint.Axis.Z * factor)
+                    let next =
+                        { origin with
+                            Orientation = ValueGeometry.multiply origin.Orientation (ValueGeometry.rotation axis angle) }
 
-                    loop rest tail (struct (x, y, z, nw, nx, ny, nz))
+                    loop rest tail next (column + 1)
                 | _ -> invalidArg "angles" "Joint count mismatch"
             | _ -> invalidArg "angles" "Joint count mismatch"
 
-        loop joints angles (struct (0., 0., 0., 1., 0., 0., 0.))
+        let tip = loop joints angles ValueGeometry.identity 0
+        let matrix = Matrix<float>.Build.Dense(6, axes.Length)
 
-    let internal jacobian chain angles =
-        let pose, axes = evaluate true chain angles
+        for column in 0 .. axes.Length - 1 do
+            let struct (origin, axis) = axes[column]
+            let linear = ValueGeometry.cross axis (ValueGeometry.subtract tip.Position origin)
+            matrix[0, column] <- linear.X
+            matrix[1, column] <- linear.Y
+            matrix[2, column] <- linear.Z
+            matrix[3, column] <- axis.X
+            matrix[4, column] <- axis.Y
+            matrix[5, column] <- axis.Z
 
-        let columns =
-            axes
-            |> List.map (fun (origin, axis) ->
-                let linear = cross axis (subtract pose.Position origin) in
-                [| linear.X; linear.Y; linear.Z; axis.X; axis.Y; axis.Z |])
-            |> List.toArray
-
-        Matrix<float>.Build.Dense(6, columns.Length, fun r c -> columns[c][r])
+        matrix
 
     let jacobianRows (chain: Chain) (angles: float list) : float list list =
         let matrix = jacobian chain angles
