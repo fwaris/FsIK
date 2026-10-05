@@ -23,7 +23,7 @@ Distances are metres and angles are radians. The URDF loader supports fixed and 
 dotnet fsi scripts/Build.fsx pack
 ```
 
-This checks formatting, runs standalone tests and creates `artifacts/packages/FsIK.0.1.0-local.2.nupkg`. The local NuGet source is `artifacts/packages`. Increment `FsIKVersion` in `Directory.Build.props` before building a changed package; versions are immutable. The Axol controller uses this directory as its `FsIK-local` NuGet source and pins the version in central package management. No package is published remotely.
+This checks formatting, runs standalone tests and creates `artifacts/packages/FsIK.0.1.0-local.3.nupkg`. The local NuGet source is `artifacts/packages`. Increment `FsIKVersion` in `Directory.Build.props` before building a changed package; versions are immutable. The Axol controller uses this directory as its `FsIK-local` NuGet source and pins the version in central package management. No package is published remotely.
 
 ## Verify the actual NuGet package
 
@@ -38,3 +38,5 @@ The frozen validation executable references the NuGet package, not the source pr
 The source/test solution is `FsIK.slnx`. Package validation is separate so the first build can create its package before restoring the consumer. F# helper scripts are under `scripts`; temporary experiments belong in `temp`.
 
 The struct optimization is compared against `0.1.0-local.1` using three complete frozen validation runs for each package, with the existing warmups and allocation counters. Measurements and acceptance are recorded in `docs/STRUCT_ALLOCATION_RESULTS.md` and `artifacts/validation/structs`. The previous package is retained.
+
+Version `0.1.0-local.3` reuses preallocated .NET mutable lists (`ResizeArray<T>`) as per-call trajectory scratch. The 65-point tip derivative check overwrites one joint buffer and retains only the previous tip. Segment metadata uses a mutable list of value tuples. Completed frames remain independently owned immutable F# lists. Solver behaviour, sampling and the public API are preserved. Comparisons against `0.1.0-local.2` are recorded in `docs/BUFFER_ALLOCATION_RESULTS.md` and `artifacts/validation/buffers`.

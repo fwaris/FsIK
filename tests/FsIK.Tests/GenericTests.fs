@@ -73,3 +73,34 @@ let ``value traversal rejects missing and excess joint angles`` () =
 
         Assert.Throws<ArgumentException>(fun () -> Geometry.jacobianRows chain angles |> ignore)
         |> ignore
+
+
+[<Fact>]
+let ``retiming scratch is isolated across segments calls and concurrent plans`` () =
+    let input = [ [ 0. ]; [ 0.2 ]; [ 0.2 ]; [ -0.3 ]; [ 0. ] ]
+    let expectedInput = [ [ 0. ]; [ 0.2 ]; [ 0.2 ]; [ -0.3 ]; [ 0. ] ]
+
+    let trajectory =
+        match Trajectory.retime Trajectory.conservative chain input with
+        | Ok result -> result
+        | Error failure -> failwithf "%A" failure
+
+    let retainedFrames = trajectory.Samples |> List.map List.toArray
+    Assert.Equal<float list list>(expectedInput, input)
+    Assert.Equal<float list>([ 0. ], trajectory.Samples.Head)
+    Assert.Equal<float list>([ 0. ], List.last trajectory.Samples)
+    Assert.True(trajectory.Samples |> List.exists (fun angles -> angles.Head >= 0.19))
+    Assert.True(trajectory.Samples |> List.exists (fun angles -> angles.Head <= -0.29))
+
+    let concurrent =
+        [| 1..8 |]
+        |> Array.Parallel.map (fun _ -> Trajectory.retime Trajectory.conservative chain input)
+
+    Assert.True(concurrent |> Array.forall ((=) (Ok trajectory)))
+    Trajectory.retime Trajectory.conservative chain [ [ -0.5 ]; [ 0.5 ] ] |> ignore
+    Assert.Equal<float list list>(expectedInput, input)
+
+    List.iter2
+        (fun angles (retained: float array) -> Assert.Equal<float>(retained, List.toArray angles))
+        trajectory.Samples
+        retainedFrames

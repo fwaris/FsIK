@@ -30,8 +30,30 @@ module Trajectory =
     let private interpolate a b u =
         List.map2 (fun x y -> x + (y - x) * u) a b
 
+    let private fillInterpolated (scratch: ResizeArray<float>) a b u =
+        scratch.Clear()
+
+        let rec fill remainingA remainingB =
+            match remainingA, remainingB with
+            | x :: tailA, y :: tailB ->
+                scratch.Add(x + (y - x) * u)
+                fill tailA tailB
+            | [], [] -> ()
+            | _ -> invalidArg "waypoints" "Joint count mismatch"
+
+        fill a b
+
+    let private largestJointChange a b =
+        let rec largest remainingA remainingB value =
+            match remainingA, remainingB with
+            | x :: tailA, y :: tailB -> largest tailA tailB (max value (abs (y - x)))
+            | [], [] -> value
+            | _ -> invalidArg "waypoints" "Joint count mismatch"
+
+        largest a b 0.
+
     let private tip chain angles =
-        let frame = Geometry.forwardValue chain angles
+        let frame = Geometry.forwardBuffer chain angles
         ValueGeometry.add frame.Position (ValueGeometry.rotate frame.Orientation (ValueGeometry.v 0. 0. -0.145))
 
     /// Conservative offline commissioning path: quintic easing between waypoints,
@@ -60,30 +82,43 @@ module Trajectory =
         then
             Error(InvalidPath "Finite, legal waypoints and positive motion limits required")
         else
+            // One reusable angle buffer per retiming call. Only the previous tip
+            // is needed for the unchanged 65-point derivative check per segment.
+            let scratch = ResizeArray<float>(bounds.Length)
+
             let segments =
-                waypoints
-                |> List.pairwise
-                |> List.map (fun (a, b) ->
-                    let largest = List.map2 (fun x y -> abs (y - x)) a b |> List.max
-                    // Numerical tip derivative bound receives a margin and is
-                    // checked independently on every generated sample afterwards.
-                    let tipSlope =
-                        [ 0..64 ]
-                        |> List.map (fun i -> interpolate a b (float i / 64.) |> tip chain)
-                        |> List.pairwise
-                        |> List.map (fun (x, y) -> ValueGeometry.norm (ValueGeometry.subtract y x) * 64.)
-                        |> List.max
+                ResizeArray<struct (float list * float list * float)>(waypoints.Length - 1)
+
+            let mutable totalTicks = 0.
+
+            let rec collect remaining =
+                match remaining with
+                | a :: (b :: _ as tail) ->
+                    let largest = largestJointChange a b
+                    fillInterpolated scratch a b 0.
+                    let mutable previous = tip chain scratch
+                    let mutable tipSlope = 0.
+
+                    for i in 1..64 do
+                        fillInterpolated scratch a b (float i / 64.)
+                        let current = tip chain scratch
+                        tipSlope <- max tipSlope (ValueGeometry.norm (ValueGeometry.subtract current previous) * 64.)
+                        previous <- current
 
                     let duration =
-                        [ 1.875 * largest / limits.MaxJointVelocity
-                          sqrt ((10. / sqrt 3.) * largest / limits.MaxJointAcceleration)
-                          1.875 * tipSlope * 1.1 / limits.MaxTipSpeed ]
-                        |> List.max
+                        max
+                            (max
+                                (1.875 * largest / limits.MaxJointVelocity)
+                                (sqrt ((10. / sqrt 3.) * largest / limits.MaxJointAcceleration)))
+                            (1.875 * tipSlope * 1.1 / limits.MaxTipSpeed)
 
                     let ticks = max 2. (ceil (duration * float limits.Rate))
-                    a, b, ticks)
+                    segments.Add(struct (a, b, ticks))
+                    totalTicks <- totalTicks + ticks
+                    collect tail
+                | _ -> ()
 
-            let totalTicks = segments |> List.sumBy (fun (_, _, ticks) -> ticks)
+            collect waypoints
             let duration = totalTicks / float limits.Rate
 
             if
@@ -93,9 +128,11 @@ module Trajectory =
             then
                 Error(DurationExceeded duration)
             else
+                // Returned frames own separate immutable lists. The scratch
+                // buffer is never stored in a trajectory or shared across calls.
                 let samples =
                     waypoints.Head
-                    :: [ for a, b, ticks in segments do
+                    :: [ for struct (a, b, ticks) in segments do
                              for i in 1 .. int ticks do
                                  yield interpolate a b (blend (float i / ticks)) ]
 

@@ -307,6 +307,30 @@ module Geometry =
 
         loop joints angles ValueGeometry.identity
 
+    // Consumes caller-owned scratch synchronously; no buffer reference escapes.
+    let internal forwardBuffer (Chain joints) (angles: ResizeArray<float>) : ValuePose =
+        let rec loop pending index (pose: ValuePose) =
+            match pending with
+            | [] when index = angles.Count -> pose
+            | joint :: rest ->
+                let origin = ValueGeometry.compose pose (ValueGeometry.pose joint.Origin)
+
+                match joint.Kind with
+                | Fixed -> loop rest index origin
+                | Revolute _ when index < angles.Count ->
+                    let next =
+                        { origin with
+                            Orientation =
+                                ValueGeometry.multiply
+                                    origin.Orientation
+                                    (ValueGeometry.rotation (ValueGeometry.vector joint.Axis) angles[index]) }
+
+                    loop rest (index + 1) next
+                | _ -> invalidArg "angles" "Joint count mismatch"
+            | _ -> invalidArg "angles" "Joint count mismatch"
+
+        loop joints 0 ValueGeometry.identity
+
     let forward (chain: Chain) (angles: float list) : Pose =
         forwardValue chain angles |> ValueGeometry.publicPose
 
