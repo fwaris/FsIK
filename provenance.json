@@ -160,5 +160,162 @@
       "Version": "0.1.0-local.2"
     }
   },
-  "BufferOptimization": "Per-call preallocated .NET List\u003CT\u003E scratch; streamed 65-point tip derivative checks and value-tuple segment list. Immutable public outputs, sampling and solver preserved; frozen contract unchanged."
+  "BufferOptimization": "Per-call preallocated .NET List\u003CT\u003E scratch; streamed 65-point tip derivative checks and value-tuple segment list. Immutable public outputs, sampling and solver preserved; frozen contract unchanged.",
+  "Validation": {
+    "Comparison": {
+      "BaselineVersion": "0.1.0-local.2",
+      "CandidateVersion": "0.1.0-local.3",
+      "CompleteRunsPerVersion": 3,
+      "EndpointOutputDifferences": 0,
+      "KnownReachableTargets": 1100,
+      "MeanAllocationReductionPercent": 12.583796652055312,
+      "MeanNormalizedAllocation": 0.8741620334794469,
+      "Measurements": [
+        {
+          "AllocationReductionPercent": 0,
+          "BaselineBytes": 58866.6,
+          "BaselineMilliseconds": 0.05134,
+          "CandidateBytes": 58866.6,
+          "CandidateMilliseconds": 0.050105,
+          "Name": "left-up-10mm",
+          "TimeChangePercent": -2.4055317491234907
+        },
+        {
+          "AllocationReductionPercent": 0,
+          "BaselineBytes": 85170.6,
+          "BaselineMilliseconds": 0.0734575,
+          "CandidateBytes": 85170.6,
+          "CandidateMilliseconds": 0.07478749999999999,
+          "Name": "left-up-50.8mm",
+          "TimeChangePercent": 1.810570738181938
+        },
+        {
+          "AllocationReductionPercent": 0,
+          "BaselineBytes": 53754.6,
+          "BaselineMilliseconds": 0.047952499999999995,
+          "CandidateBytes": 53754.6,
+          "CandidateMilliseconds": 0.0480675,
+          "Name": "right-up-50.8mm",
+          "TimeChangePercent": 0.2398206558573701
+        },
+        {
+          "AllocationReductionPercent": 0,
+          "BaselineBytes": 1073802.6,
+          "BaselineMilliseconds": 0.9027799999999999,
+          "CandidateBytes": 1073802.6,
+          "CandidateMilliseconds": 0.89932,
+          "Name": "left-straight-up-50.8mm",
+          "TimeChangePercent": -0.3832605950508272
+        },
+        {
+          "AllocationReductionPercent": 28.106181115116435,
+          "BaselineBytes": 2132997,
+          "BaselineMilliseconds": 1.54675,
+          "CandidateBytes": 1533493,
+          "CandidateMilliseconds": 2.4609,
+          "Name": "left-path-10mm",
+          "TimeChangePercent": 59.101341522547266
+        },
+        {
+          "AllocationReductionPercent": 47.39659879721542,
+          "BaselineBytes": 6325821,
+          "BaselineMilliseconds": 5.78385,
+          "CandidateBytes": 3327597,
+          "CandidateMilliseconds": 4.426375,
+          "Name": "left-path-50.8mm",
+          "TimeChangePercent": -23.470093449864706
+        }
+      ],
+      "PathSamplesIdentical": true,
+      "PreviouslyPassingCases": 1164,
+      "PublicApiUnchanged": true,
+      "RequiresTimingInvestigation": true,
+      "ValidationGatesPassedPerRun": 9
+    },
+    "ControllerPinnedVersion": "0.1.0-local.2",
+    "ExperimentBranch": "codex/fsik-trajectory-buffers",
+    "FrozenContractUnchanged": true,
+    "LibraryDllSha256": "84c5d4838ba32e0a34947c638ce95026b2723f7c7d1d95cc239418c5bd10b8d5",
+    "LongerWarmupBaseline": [
+      {
+        "Bytes": 120.00208,
+        "Milliseconds": 0.000213992,
+        "Name": "forward"
+      },
+      {
+        "Bytes": 2336.0104,
+        "Milliseconds": 0.0029968,
+        "Name": "jacobianRows"
+      },
+      {
+        "Bytes": 85209.512,
+        "Milliseconds": 0.0879205,
+        "Name": "endpoint-50.8mm"
+      },
+      {
+        "Bytes": 1792905.04,
+        "Milliseconds": 1.6133279999999999,
+        "Name": "solve-100-waypoints"
+      },
+      {
+        "Bytes": 4503537.04,
+        "Milliseconds": 2.226418,
+        "Name": "retime-100-waypoints"
+      },
+      {
+        "Bytes": 2130425.04,
+        "Milliseconds": 1.413698,
+        "Name": "complete-path-10mm"
+      },
+      {
+        "Bytes": 6314249.04,
+        "Milliseconds": 3.860646,
+        "Name": "complete-path-50.8mm"
+      }
+    ],
+    "LongerWarmupCandidate": [
+      {
+        "Bytes": 120.00208,
+        "Milliseconds": 0.000212776,
+        "Name": "forward"
+      },
+      {
+        "Bytes": 2336.0104,
+        "Milliseconds": 0.00179799,
+        "Name": "jacobianRows"
+      },
+      {
+        "Bytes": 85174.184,
+        "Milliseconds": 0.0843698,
+        "Name": "endpoint-50.8mm"
+      },
+      {
+        "Bytes": 1792905.04,
+        "Milliseconds": 1.628581,
+        "Name": "solve-100-waypoints"
+      },
+      {
+        "Bytes": 1522921.04,
+        "Milliseconds": 1.7071809999999998,
+        "Name": "retime-100-waypoints"
+      },
+      {
+        "Bytes": 1534449.04,
+        "Milliseconds": 1.334604,
+        "Name": "complete-path-10mm"
+      },
+      {
+        "Bytes": 3333633.04,
+        "Milliseconds": 3.355351,
+        "Name": "complete-path-50.8mm"
+      }
+    ],
+    "PackageConsumerVerified": true,
+    "PackageSha256": "4ace7da4187a2473d16728599191be7db2cd8d17277298eee4aeecc66ccc75db",
+    "PackageVersion": "0.1.0-local.3",
+    "PreservedBaselineBranch": "codex/fsik-structs-baseline",
+    "PreviousPackageUnchanged": true,
+    "StandaloneTestsPassed": 9,
+    "VerifiedUtc": "2026-10-05T20:38:10.0448771\u002B00:00"
+  }
 }
