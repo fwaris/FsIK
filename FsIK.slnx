@@ -1,0 +1,4 @@
+<Solution>
+  <Folder Name="/src/"><Project Path="src/FsIK/FsIK.fsproj" /></Folder>
+  <Folder Name="/tests/"><Project Path="tests/FsIK.Tests/FsIK.Tests.fsproj" /></Folder>
+</Solution>

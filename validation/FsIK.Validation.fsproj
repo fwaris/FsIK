@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Fixtures.fs" /><Compile Include="Evaluation.fs" /><Compile Include="Probe.fs" />
+    <PackageReference Include="FsIK" />
+    <Content Include="fixtures/axol_arms.urdf" Link="model.urdf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="fixtures/recorded-pose.json" Link="recorded-pose.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

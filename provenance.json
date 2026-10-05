@@ -1,0 +1,24 @@
+{
+  "CampaignRun": "c152a48d-5d49-48d5-ad0d-c6e848b03a58",
+  "ChampionCommit": "12fd364727721b7554f6b7ff3fd81aa2d544bffa",
+  "Files": {
+    "Geometry.fs": {
+      "ChampionSha256": "ec2337429ccaa391f0a5f850aa683253216269e2e3dfbb2dd061da3775ed336e",
+      "FsIKSha256": "8c77d6e66c3441f4681f2093f9deba387954cc9435cb746c70c535cdb1c2254a"
+    },
+    "Solver.fs": {
+      "ChampionSha256": "c773da97da856f8e7069dce80b89c137e253cc172809c8102e88394cc4b9741c",
+      "FsIKSha256": "af93f07681d4e0d514eb68a8e771bc40ec0d6042ac9f0060a2aab77a729a5b61"
+    },
+    "Trajectory.fs": {
+      "ChampionSha256": "6226172d555b833686bd64eaa3980e7ce12c2422ccab97a6d3d25c77db0aa043",
+      "FsIKSha256": "0976537a65cba0ce750cf7f6b0da626de4f6ce634da40342eb4c3a7a915833ca"
+    },
+    "Translation.fs": {
+      "ChampionSha256": "12731cdd85ee41be7e34df077f77ce62bd284a7322fe9420b3b422680c5dbe25",
+      "FsIKSha256": "7a4392bbb37276bfdc96048507550784f2d59a1ddb93e882ffe3493539daa6cb"
+    }
+  },
+  "NamespaceChange": "Axol.Kinematics -\u003E FsIK",
+  "PackageVersion": "0.1.0-local.1"
+}

@@ -1,0 +1,30 @@
+{
+  "Champion": "74b3dc212c1bf16e622a43675219c4d71a5d819c",
+  "KnownReachableRequired": 1100,
+  "References": [
+    {
+      "Bytes": 784850.6,
+      "Name": "left-up-10mm"
+    },
+    {
+      "Bytes": 1168082.6,
+      "Name": "left-up-50.8mm"
+    },
+    {
+      "Bytes": 779706.6,
+      "Name": "right-up-50.8mm"
+    },
+    {
+      "Bytes": 14434418.6,
+      "Name": "left-straight-up-50.8mm"
+    },
+    {
+      "Bytes": 30084405,
+      "Name": "left-path-10mm"
+    },
+    {
+      "Bytes": 107338477,
+      "Name": "left-path-50.8mm"
+    }
+  ]
+}

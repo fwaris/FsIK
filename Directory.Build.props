@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+    <IsPackable>false</IsPackable>
+    <FsIKVersion>0.1.0-local.1</FsIKVersion>
+  </PropertyGroup>
+  <ItemGroup><PackageReference Include="FSharp.Core" /></ItemGroup>
+</Project>

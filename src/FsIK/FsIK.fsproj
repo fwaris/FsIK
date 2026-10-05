@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>FsIK</PackageId>
+    <Version>$(FsIKVersion)</Version>
+    <Description>Bounded inverse kinematics, URDF chain geometry and conservative Cartesian trajectory timing for F# and .NET.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>FSharp;robotics;inverse-kinematics;MathNet</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Geometry.fs" />
+    <Compile Include="Solver.fs" />
+    <Compile Include="Trajectory.fs" />
+    <Compile Include="Translation.fs" />
+    <PackageReference Include="MathNet.Numerics" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../provenance.json" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

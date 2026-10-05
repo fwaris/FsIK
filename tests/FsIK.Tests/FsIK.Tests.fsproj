@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsTestProject>true</IsTestProject></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Tests.fs" />
+    <Compile Include="GenericTests.fs" />
+    <ProjectReference Include="../../src/FsIK/FsIK.fsproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <Content Include="../../validation/fixtures/axol_arms.urdf" Link="model.urdf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="planar.urdf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
