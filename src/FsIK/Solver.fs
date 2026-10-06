@@ -43,6 +43,7 @@ module Solver =
         { Angles: ResizeArray<float>
           Candidate: ResizeArray<float>
           BestCandidate: ResizeArray<float>
+          NearBounds: Limit array
           Axes: struct (ValueVec3 * ValueVec3) array
           Jacobian: Matrix<float>
           Error: Vector<float>
@@ -65,6 +66,7 @@ module Solver =
         { Angles = angleBuffer count
           Candidate = angleBuffer count
           BestCandidate = angleBuffer count
+          NearBounds = Array.zeroCreate count
           Axes = Array.zeroCreate count
           Jacobian = Matrix<float>.Build.Dense(6, count)
           Error = Vector<float>.Build.Dense 6
@@ -360,10 +362,7 @@ module Solver =
                 |> List.minBy (fun solution -> List.map2 (fun a b -> (a - b) ** 2.) seed solution.Angles |> List.sum)
                 |> Solved
 
-    let solve (options: Options) (chain: Chain) (target: Pose) (seed: float list) : SolveResult =
-        let model = models.GetValue(chain, prepare)
-        let limits = model.Limits
-
+    let private inputError (options: Options) (limits: Limit list) (target: Pose) (seed: float list) =
         let validPose =
             [ target.Position.X
               target.Position.Y
@@ -389,9 +388,9 @@ module Solver =
             || not validPose
             || abs (quaternionNorm - 1.) > 1e-6
         then
-            Failed(InvalidInput "Finite joints and a unit-quaternion target are required")
+            Some "Finite joints and a unit-quaternion target are required"
         elif not (List.forall2 (fun limit angle -> angle >= limit.Lower && angle <= limit.Upper) limits seed) then
-            Failed(InvalidInput "Seed lies outside model joint limits")
+            Some "Seed lies outside model joint limits"
         elif
             options.MaxIterations < 1
             || not (
@@ -403,11 +402,98 @@ module Solver =
                       options.OrientationWeight ]
             )
         then
-            Failed(InvalidInput "Invalid solver options")
+            Some "Invalid solver options"
         else
+            None
+
+    let solve (options: Options) (chain: Chain) (target: Pose) (seed: float list) : SolveResult =
+        let model = models.GetValue(chain, prepare)
+
+        match inputError options model.Limits target seed with
+        | Some error -> Failed(InvalidInput error)
+        | None ->
             let storage = model.Rent()
 
             try
                 solveValid options chain (ValueGeometry.pose target) seed model storage
             finally
                 model.Return storage
+
+    /// Solve only inside the physical limits intersected with seed +/- maxJointChangeRadians.
+    /// No global restart seeds are used; bounded angles are never wrapped.
+    let solveNear
+        (options: Options)
+        (maxJointChangeRadians: float)
+        (chain: Chain)
+        (target: Pose)
+        (seed: float list)
+        : SolveResult =
+        if not (Double.IsFinite maxJointChangeRadians) || maxJointChangeRadians <= 0. then
+            Failed(InvalidInput "Maximum joint change must be finite and positive")
+        else
+            let model = models.GetValue(chain, prepare)
+
+            match inputError options model.Limits target seed with
+            | Some error -> Failed(InvalidInput error)
+            | None ->
+                let storage = model.Rent()
+
+                try
+                    seed
+                    |> List.iteri (fun joint anchor ->
+                        let physical = model.Bounds[joint]
+                        let lower = max physical.Lower (anchor - maxJointChangeRadians)
+                        let upper = min physical.Upper (anchor + maxJointChangeRadians)
+                        // Round inward when subtraction would otherwise exceed the requested radius.
+                        storage.NearBounds[joint] <-
+                            { Lower =
+                                if anchor - lower > maxJointChangeRadians then
+                                    Math.BitIncrement lower
+                                else
+                                    lower
+                              Upper =
+                                if upper - anchor > maxJointChangeRadians then
+                                    Math.BitDecrement upper
+                                else
+                                    upper })
+
+                    let refineSeed =
+                        refine options chain (ValueGeometry.pose target) storage.NearBounds storage
+
+                    let initial = refineSeed seed
+
+                    let withinNear (solution: Solution) =
+                        within options solution
+                        && List.forall2
+                            (fun anchor angle -> abs (angle - anchor) <= maxJointChangeRadians)
+                            seed
+                            solution.Angles
+
+                    if withinNear initial then
+                        Solved initial
+                    else
+                        let attempted =
+                            [ for joint in 0 .. seed.Length - 1 do
+                                  for direction in [ 1.; -1. ] do
+                                      let perturbed =
+                                          seed
+                                          |> List.mapi (fun index angle ->
+                                              let limit = storage.NearBounds[index]
+
+                                              Math.Clamp(
+                                                  (if index = joint then angle + direction * 0.08 else angle),
+                                                  limit.Lower,
+                                                  limit.Upper
+                                              ))
+
+                                      yield refineSeed perturbed ]
+
+                        match attempted |> List.filter withinNear with
+                        | [] -> Failed(NoConvergence((initial :: attempted) |> List.minBy (score options)))
+                        | solutions ->
+                            solutions
+                            |> List.minBy (fun solution ->
+                                List.map2 (fun a b -> (a - b) ** 2.) seed solution.Angles |> List.sum)
+                            |> Solved
+                finally
+                    model.Return storage

@@ -52,7 +52,7 @@ let ``public geometry retains reference records and double precision`` () =
     let result = Geometry.add position delta
     Assert.Equal(16.00000001, result.X)
     Assert.True(result.X > position.X)
-    let opposite = { W = -1.; X = 0.; Y = 0.; Z = 0. }
+    let opposite: Quaternion = { W = -1.; X = 0.; Y = 0.; Z = 0. }
     Assert.Equal(0., Geometry.norm (Geometry.rotationError Geometry.identity.Orientation opposite))
 
 [<Fact>]

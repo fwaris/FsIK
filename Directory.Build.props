@@ -6,7 +6,7 @@
     <Deterministic>true</Deterministic>
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     <IsPackable>false</IsPackable>
-    <FsIKVersion>0.1.0-local.4</FsIKVersion>
+    <FsIKVersion>0.1.0-local.5</FsIKVersion>
   </PropertyGroup>
   <ItemGroup><PackageReference Include="FSharp.Core" /></ItemGroup>
 </Project>
