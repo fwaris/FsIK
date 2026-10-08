@@ -1,0 +1,11 @@
+<robot name="two-joint-arm">
+  <link name="base"><collision><geometry><sphere radius="0.04"/></geometry></collision></link>
+  <link name="upper"><collision><origin xyz="0.15 0 0" rpy="0 1.5707963267948966 0"/><geometry><cylinder radius="0.015" length="0.3"/></geometry></collision></link>
+  <link name="lower"><collision><origin xyz="0.125 0 0" rpy="0 1.5707963267948966 0"/><geometry><cylinder radius="0.015" length="0.25"/></geometry></collision></link>
+  <link name="tip"><collision><geometry><sphere radius="0.025"/></geometry></collision></link>
+  <link name="other"><collision><geometry><sphere radius="0.03"/></geometry></collision></link>
+  <joint name="shoulder" type="revolute"><parent link="base"/><child link="upper"/><axis xyz="0 0 1"/><limit lower="-2" upper="2"/></joint>
+  <joint name="elbow" type="revolute"><parent link="upper"/><child link="lower"/><origin xyz="0.3 0 0"/><axis xyz="0 0 1"/><limit lower="-2.5" upper="2.5"/></joint>
+  <joint name="tool" type="fixed"><parent link="lower"/><child link="tip"/><origin xyz="0.25 0 0"/></joint>
+  <joint name="otherJoint" type="revolute"><parent link="base"/><child link="other"/><origin xyz="-1 0 0"/><axis xyz="0 0 1"/><limit lower="-1" upper="1"/></joint>
+</robot>

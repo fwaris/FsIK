@@ -1,4 +1,6 @@
 <Solution>
   <Folder Name="/src/"><Project Path="src/FsIK/FsIK.fsproj" /></Folder>
   <Folder Name="/tests/"><Project Path="tests/FsIK.Tests/FsIK.Tests.fsproj" /></Folder>
+  <Project Path="src/FsMotion/FsMotion.fsproj" />
+  <Project Path="tests/FsMotion.Tests/FsMotion.Tests.fsproj" />
 </Solution>

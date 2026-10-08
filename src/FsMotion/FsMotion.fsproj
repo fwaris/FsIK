@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>FsMotion</PackageId>
+    <Version>0.1.0-local.2</Version>
+    <Description>Offline collision-aware joint-space planning with FsIK.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Model.fs" />
+    <Compile Include="Collision.fs" />
+    <Compile Include="Planner.fs" />
+    <ProjectReference Include="../FsIK/FsIK.fsproj" />
+    <None Include="../../docs/FS_MOTION.md" Pack="true" PackagePath="/README.md" />
+  </ItemGroup>
+</Project>

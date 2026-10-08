@@ -1,0 +1,110 @@
+[
+  {
+    "Name": "Base.stl",
+    "Bytes": 684,
+    "Triangles": 12,
+    "Sha256": "0F7BFD07E6385942890DA9C275C8D59B4B983A6A4B16BBAABB95F7B71D9D81C9"
+  },
+  {
+    "Name": "Left_E1.stl",
+    "Bytes": 2484,
+    "Triangles": 48,
+    "Sha256": "F431464EC4019ABD1F7FBF20A27CCC35CDCEB3321230DAE934ED29B1FA880D75"
+  },
+  {
+    "Name": "Left_E2.stl",
+    "Bytes": 2684,
+    "Triangles": 52,
+    "Sha256": "F26BFC049EFDA90EA0945587BD9355960D80CD02B69739EB1DF78F3CE4E8CDF6"
+  },
+  {
+    "Name": "Left_Gripper.stl",
+    "Bytes": 1084,
+    "Triangles": 20,
+    "Sha256": "F2C338E614AE0185C6A6FFA3A61D913404129A930A229D163E4CACE7E21674F4"
+  },
+  {
+    "Name": "Left_S2.stl",
+    "Bytes": 3084,
+    "Triangles": 60,
+    "Sha256": "733B6C3453D95F53B0A57A1732CC0FD7573E96C6BDEA28E56838804DBE4343F8"
+  },
+  {
+    "Name": "Left_S3.stl",
+    "Bytes": 5784,
+    "Triangles": 114,
+    "Sha256": "F806E88B8CA47E841908A7D8BB6E9DE96FAD6ABD966C7C06AA7240BA30AD01A4"
+  },
+  {
+    "Name": "Left_W0.stl",
+    "Bytes": 4284,
+    "Triangles": 84,
+    "Sha256": "9CB1F39CEE7C539E0748F480208D116F430376E608037A06353DDF4B3E5366B3"
+  },
+  {
+    "Name": "Left_W1.stl",
+    "Bytes": 3484,
+    "Triangles": 68,
+    "Sha256": "36DE1BEE86A8CC2EA0A1FA8A5E1E5C3B04CAC4C48330C4057DFE9238E418502B"
+  },
+  {
+    "Name": "Left_W2.stl",
+    "Bytes": 4284,
+    "Triangles": 84,
+    "Sha256": "05553447DC42C53FFFA5E3BEE586EA81A80F037ECBEE8F1161D171FF301CD4D8"
+  },
+  {
+    "Name": "Right_E1.stl",
+    "Bytes": 2484,
+    "Triangles": 48,
+    "Sha256": "445A7277B56BEEC5AAD4C5D5DF8096708FA5544D71AB1C74FF8C7A9C3AA124D6"
+  },
+  {
+    "Name": "Right_E2.stl",
+    "Bytes": 2684,
+    "Triangles": 52,
+    "Sha256": "B29AC30A5083768367B28AAB533D883B6CA3B2655E08111059F7162A62C25E08"
+  },
+  {
+    "Name": "Right_Gripper.stl",
+    "Bytes": 1084,
+    "Triangles": 20,
+    "Sha256": "60221D7204BB900C0EBB2B2AA825FB49F7A64E315A1B746877930E777AB7FC3A"
+  },
+  {
+    "Name": "Right_S2.stl",
+    "Bytes": 3084,
+    "Triangles": 60,
+    "Sha256": "E6A32C65B8AF4C9AAB171A1F0235CDC8D86838E52AC4556CDF72E30804BA478A"
+  },
+  {
+    "Name": "Right_S3.stl",
+    "Bytes": 5784,
+    "Triangles": 114,
+    "Sha256": "2D1A1B6EA645E016BBB51715E3660D041671B7691A2FB1E1B38A6F426F2EF688"
+  },
+  {
+    "Name": "Right_W0.stl",
+    "Bytes": 4284,
+    "Triangles": 84,
+    "Sha256": "098F936FA54027C48037875AA28FCBB204B41FD4FBED7C212584A73A669EDA6B"
+  },
+  {
+    "Name": "Right_W1.stl",
+    "Bytes": 3484,
+    "Triangles": 68,
+    "Sha256": "6CD63FAC9932438C990D68D2DCC9E74124A3C9E371274BBE39AEB396AE2FF198"
+  },
+  {
+    "Name": "Right_W2.stl",
+    "Bytes": 4284,
+    "Triangles": 84,
+    "Sha256": "6EB64F40EAEE9A37BB2B3713E78AF8FE560C04B726A6A4141A2A7BF40326B152"
+  },
+  {
+    "Name": "S1.stl",
+    "Bytes": 684,
+    "Triangles": 12,
+    "Sha256": "080F63671424EB166F7F2D98DA665525E66915EEFA68C7BAAF3998F0A5A6CBED"
+  }
+]
