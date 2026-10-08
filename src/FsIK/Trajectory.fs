@@ -139,3 +139,148 @@ module Trajectory =
                 Ok
                     { Samples = samples
                       DurationSeconds = duration }
+
+    /// Shape-preserving C1 joint spline with one smooth clock for the whole path.
+    /// Intermediate waypoints are not stops. This is bounded, not time-optimal.
+    let retimeContinuous
+        (limits: MotionLimits)
+        chain
+        (waypoints: float list list)
+        : Result<Trajectory, TrajectoryFailure> =
+        let bounds = Geometry.limits chain |> List.toArray
+
+        let legal angles =
+            List.length angles = bounds.Length
+            && List.forall Double.IsFinite angles
+            && List.forall2
+                (fun bound angle -> angle >= bound.Lower && angle <= bound.Upper)
+                (Array.toList bounds)
+                angles
+
+        let validLimits =
+            limits.Rate > 0
+            && [ limits.MaxJointVelocity
+                 limits.MaxJointAcceleration
+                 limits.MaxTipSpeed
+                 limits.MaxDuration ]
+               |> List.forall (fun value -> Double.IsFinite value && value > 0.)
+
+        if
+            not validLimits
+            || bounds.Length = 0
+            || waypoints.Length < 2
+            || not (List.forall legal waypoints)
+        then
+            Error(InvalidPath "Finite, legal waypoints and positive motion limits required")
+        else
+            let points = waypoints |> List.map List.toArray |> List.toArray
+            let scratch = ResizeArray<float>(bounds.Length)
+
+            let tipOf (angles: float array) =
+                scratch.Clear()
+                scratch.AddRange angles
+                tip chain scratch
+
+            let segments = points.Length - 1
+            let slopes = Array.init segments (fun i -> Array.map2 (-) points[i + 1] points[i])
+            let tangents = Array.init points.Length (fun _ -> Array.zeroCreate bounds.Length)
+
+            for joint in 0 .. bounds.Length - 1 do
+                tangents[0][joint] <- slopes[0][joint]
+                tangents[segments][joint] <- slopes[segments - 1][joint]
+
+                for i in 1 .. segments - 1 do
+                    let a, b = slopes[i - 1][joint], slopes[i][joint]
+                    // Harmonic monotone tangents prevent overshoot of legal endpoints.
+                    tangents[i][joint] <- if a * b <= 0. then 0. else 2. * a * b / (a + b)
+
+            let evaluate fraction =
+                if fraction <= 0. then
+                    Array.copy points[0]
+                elif fraction >= 1. then
+                    Array.copy points[segments]
+                else
+                    let position = fraction * float segments
+                    let i = min (segments - 1) (int position)
+                    let u = position - float i
+                    let u2, u3 = u * u, u * u * u
+
+                    Array.init bounds.Length (fun joint ->
+                        let value =
+                            (2. * u3 - 3. * u2 + 1.) * points[i][joint]
+                            + (u3 - 2. * u2 + u) * tangents[i][joint]
+                            + (-2. * u3 + 3. * u2) * points[i + 1][joint]
+                            + (u3 - u2) * tangents[i + 1][joint]
+
+                        max bounds[joint].Lower (min bounds[joint].Upper value))
+
+            let travel =
+                Array.init bounds.Length (fun joint -> slopes |> Array.sumBy (fun step -> abs step[joint]))
+                |> Array.max
+
+            let tipTravel =
+                points
+                |> Array.pairwise
+                |> Array.sumBy (fun (a, b) -> ValueGeometry.norm (ValueGeometry.subtract (tipOf b) (tipOf a)))
+
+            let initialDuration =
+                max
+                    (1.875 * travel / limits.MaxJointVelocity)
+                    (max
+                        (sqrt ((10. / sqrt 3.) * travel / limits.MaxJointAcceleration))
+                        (1.875 * tipTravel * 1.1 / limits.MaxTipSpeed))
+
+            let rate = float limits.Rate
+
+            let rec sample attempt duration =
+                let ticks = max 2. (ceil (duration * rate))
+                let actualDuration = ticks / rate
+
+                if
+                    not (Double.IsFinite ticks)
+                    || actualDuration > limits.MaxDuration
+                    || ticks >= float Int32.MaxValue
+                then
+                    Error(DurationExceeded actualDuration)
+                elif attempt > 12 then
+                    Error(InvalidPath "Continuous retiming did not satisfy sampled motion limits")
+                else
+                    let frames =
+                        Array.init (int ticks + 1) (fun i -> evaluate (blend (float i / ticks)))
+
+                    let mutable peakVelocity, peakAcceleration, peakTipSpeed = 0., 0., 0.
+                    let previousVelocity = Array.zeroCreate bounds.Length
+                    let mutable previousTip = tipOf frames[0]
+
+                    for i in 1 .. frames.Length - 1 do
+                        for joint in 0 .. bounds.Length - 1 do
+                            let velocity = (frames[i][joint] - frames[i - 1][joint]) * rate
+                            peakVelocity <- max peakVelocity (abs velocity)
+                            peakAcceleration <- max peakAcceleration (abs (velocity - previousVelocity[joint]) * rate)
+                            previousVelocity[joint] <- velocity
+
+                        let currentTip = tipOf frames[i]
+
+                        peakTipSpeed <-
+                            max peakTipSpeed (ValueGeometry.norm (ValueGeometry.subtract currentTip previousTip) * rate)
+
+                        previousTip <- currentTip
+
+                    for velocity in previousVelocity do
+                        peakAcceleration <- max peakAcceleration (abs velocity * rate)
+
+                    let stretch =
+                        max
+                            (peakVelocity / limits.MaxJointVelocity)
+                            (max
+                                (sqrt (peakAcceleration / limits.MaxJointAcceleration))
+                                (peakTipSpeed / limits.MaxTipSpeed))
+
+                    if stretch > 1. then
+                        sample (attempt + 1) (actualDuration * stretch * 1.05)
+                    else
+                        Ok
+                            { Samples = frames |> Array.map Array.toList |> Array.toList
+                              DurationSeconds = actualDuration }
+
+            sample 0 initialDuration

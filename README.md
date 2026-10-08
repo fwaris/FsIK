@@ -1,5 +1,19 @@
 # FsIK
 
+Package `0.1.0-local.7` adds `Trajectory.retimeContinuous` and
+`Translation.planContinuous`. The existing retimer and `Translation.plan`
+retain their previous outputs. Continuous timing uses shape-preserving monotone
+cubic joint splines and one quintic clock across the entire bounded local IK
+path. It does not force stops at intermediate waypoints. It checks sampled joint
+velocity, acceleration (including stationary endpoints), and tip speed, stretching
+the clock until the configured limits pass. This is not time-optimal retiming.
+
+The new package passed all nine frozen validation gates and all 1,100 reachable
+targets. Continuous paths also have independent controller/NumPy checks.
+For the recorded left-arm start, 10 mm playback shortened from 13.383 s to
+9.858 s; 50.8 mm shortened from 44.992 s to 18.692 s. These are trajectory
+durations, not IK solve times. Original package versions remain in the local feed.
+
 Standalone F#/.NET 10 geometry, bounded inverse kinematics and conservative trajectory planning. Production code has no dependency on Axol, cameras, SSH, a robot SDK or the controller. Runtime dependencies are FSharp.Core 11.0.100 and MathNet.Numerics 5.0.0.
 
 The numerical implementation derives from allocation campaign champion `12fd364727721b7554f6b7ff3fd81aa2d544bffa`, extracted into namespace `FsIK`. Version `0.1.0-local.2` uses internal immutable structs containing 64-bit doubles for geometry, Jacobian traversal, solver error and line-search evaluation, and trajectory tip sampling. Public records and signatures remain unchanged. Extraction and current source hashes are recorded in `provenance.json`. Immutable records, DUs and lists remain the public API; numerical scratch belongs to an individual call.

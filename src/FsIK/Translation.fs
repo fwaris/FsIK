@@ -111,3 +111,10 @@ module Translation =
 
     let plan chain seed delta : Result<Trajectory, string> =
         planWithContinuity defaults chain seed delta
+
+    /// Bounded local Cartesian path with continuous joint velocities between waypoints.
+    let planContinuous chain seed delta : Result<Trajectory, string> =
+        waypoints defaults chain seed delta
+        |> Result.bind (fun path ->
+            Trajectory.retimeContinuous Trajectory.conservative chain path
+            |> Result.mapError (sprintf "Continuous trajectory rejected: %A"))
